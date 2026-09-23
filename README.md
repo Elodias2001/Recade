@@ -112,4 +112,4 @@ Palette, emblème et principe structurel : [`brand/README.md`](brand/README.md).
 - ~~**v0.2** — `verify` recalcule aussi volume et stack~~ ✅
 - ~~**v0.3** — rendu HTML autonome, vérifiable tel quel~~ ✅
 - **v1** — plusieurs dépôts, mapping face à une offre d'emploi
-- **plus tard** — *Djeho*, le coffre web qui héberge les attestations
+- **plus tard** — `recade.dev`, le service qui héberge les attestations en ligne

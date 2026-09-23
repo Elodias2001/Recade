@@ -13,9 +13,11 @@ import {
   saveIdentityConfig,
   type IdentityConfig,
 } from "./identity.js";
-import { renderAuthors, renderBundle } from "./render.js";
+import { renderAuthors, renderBundle, renderVerification } from "./render.js";
 import { scanRepository } from "./scan.js";
 import { bundleSchema } from "./schema.js";
+import { verifyBundle } from "./verify.js";
+import { readFile } from "node:fs/promises";
 
 export const VERSION = "0.0.0";
 
@@ -139,6 +141,37 @@ program
           `  ${pc.dim("Déclarez-la :")} ${pc.yellow("recade whoami --add <email>")}\n\n`,
       );
     }
+  });
+
+program
+  .command("verify")
+  .description("Recalcule une attestation depuis le dépôt et la confronte à ce qu'elle affirme")
+  .argument("<bundle>", "fichier JSON de l'attestation")
+  .argument("[chemin]", "dépôt à confronter", ".")
+  .action(async (bundlePath: string, chemin: string) => {
+    let raw: string;
+    try {
+      raw = await readFile(resolve(bundlePath), "utf8");
+    } catch {
+      fail(`Attestation introuvable : ${bundlePath}`);
+    }
+
+    let json: unknown;
+    try {
+      json = JSON.parse(raw);
+    } catch {
+      fail(`${bundlePath} n'est pas du JSON valide.`);
+    }
+
+    const parsed = bundleSchema.safeParse(json);
+    if (!parsed.success) {
+      fail(`Attestation malformée — elle ne respecte pas le schéma v1 :\n${parsed.error.message}`);
+    }
+
+    const root = await resolveRoot(chemin);
+    const result = await verifyBundle(root, parsed.data);
+    process.stdout.write(`${renderVerification(result)}\n`);
+    if (result.verdict === "réfutée") process.exitCode = 1;
   });
 
 program.parseAsync(process.argv).catch((error: unknown) => {

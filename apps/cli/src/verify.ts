@@ -8,7 +8,7 @@ import {
   type Author,
   type IdentityConfig,
 } from "./identity.js";
-import { readCommits } from "./scan.js";
+import { countLinesAtRev, detectStackAtRev, filesAtRev, readCommits } from "./scan.js";
 import type { Bundle } from "./schema.js";
 
 export type CheckStatus = "ok" | "divergent" | "absent";
@@ -131,17 +131,44 @@ export async function verifyBundle(root: string, bundle: Bundle): Promise<Verifi
     checks.push(eq("Fusions recomptées", claim.mergesIntegrated, realMerges.size));
   }
 
+  // --- 4. Volume et stack, recalculés dans l'arbre du commit d'ancrage ---
+  const notVerified: string[] = [];
+
+  if (bundle.volume.length > 0) {
+    const volume = await countLinesAtRev(root, repo.headSha);
+    const found = new Map(volume.map((v) => [v.language, v.lines]));
+    for (const claimed of bundle.volume) {
+      const real = found.get(claimed.language) ?? 0;
+      checks.push(eq(`Lignes ${claimed.language}`, claimed.lines, real));
+    }
+    const extra = volume.filter((v) => !bundle.volume.some((c) => c.language === v.language));
+    for (const v of extra) {
+      checks.push({
+        label: `Lignes ${v.language}`,
+        status: "divergent",
+        claimed: "non déclaré",
+        found: String(v.lines),
+      });
+    }
+  } else {
+    notVerified.push("Volume du dépôt");
+  }
+
+  const files = await filesAtRev(root, repo.headSha);
+  const stack = await detectStackAtRev(root, repo.headSha, files);
+  const claimedStack = [...bundle.stack].sort();
+  const sameStack =
+    claimedStack.length === stack.length && claimedStack.every((v, i) => v === stack[i]);
+  checks.push({
+    label: "Stack détectée",
+    status: sameStack ? "ok" : "divergent",
+    claimed: claimedStack.join(" · ") || "aucune",
+    found: stack.join(" · ") || "aucune",
+  });
+
   const verdict = checks.every((c) => c.status === "ok") ? "confirmée" : "réfutée";
 
-  return {
-    repositoryName: repo.name,
-    checks,
-    verdict,
-    // Le volume est mesuré sur l'arbre de travail au moment du scan. Le
-    // recalculer exigerait de relire l'arbre du commit d'ancrage — prévu, mais
-    // pas encore fait. On le dit plutôt que de laisser croire qu'il est vérifié.
-    notVerified: bundle.volume.length > 0 ? ["Volume du dépôt", "Stack détectée"] : ["Stack détectée"],
-  };
+  return { repositoryName: repo.name, checks, verdict, notVerified };
 }
 
 async function objectExists(root: string, sha: string): Promise<boolean> {

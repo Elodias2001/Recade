@@ -1,5 +1,4 @@
-import { basename, join } from "node:path";
-import { readFile } from "node:fs/promises";
+import { basename } from "node:path";
 import { git, gitLines, hasCommits } from "./git.js";
 import {
   collectAuthors,
@@ -130,53 +129,74 @@ export async function readCommits(root: string, rev: string): Promise<Commit[]> 
   return commits;
 }
 
-/** Compte les lignes de chaque fichier suivi, par concurrence bornée. */
-async function countLines(root: string, paths: readonly string[]): Promise<LanguageVolume[]> {
+/**
+ * Compte les lignes **dans l'arbre du commit**, jamais sur le disque.
+ *
+ * Un commit est une photographie scellée : `git grep -cI "" <sha>` compte les
+ * lignes à l'intérieur de cette photo. Le dossier de travail, lui, contient du
+ * non-commité — CIR a un dossier `spoon/` qui n'est dans aucun commit — et n'est
+ * reproductible par personne d'autre.
+ *
+ * Bénéfice secondaire : Git compte juste. Découper le texte sur les sauts de
+ * ligne en JavaScript renvoie toujours un morceau de trop, ce qui gonflait le
+ * total de ~1 ligne par fichier (874 sur CIR).
+ *
+ * `-I` écarte les binaires, `-c ""` compte toutes les lignes.
+ */
+export async function countLinesAtRev(root: string, rev: string): Promise<LanguageVolume[]> {
+  // `git grep` sort 1 quand rien ne correspond : ce n'est pas une erreur.
+  const out = await git(root, ["grep", "-cI", "", rev]).catch(() => "");
   const totals = new Map<string, number>();
-  const CONCURRENCY = 32;
-  let cursor = 0;
 
-  const worker = async (): Promise<void> => {
-    while (cursor < paths.length) {
-      const path = paths[cursor++];
-      if (!path) continue;
-      try {
-        const content = await readFile(join(root, path), "utf8");
-        if (content.includes("\0")) continue; // binaire déguisé
-        const lines = content.length === 0 ? 0 : content.split("\n").length;
-        const lang = LANGUAGES[extensionOf(path)]!;
-        totals.set(lang, (totals.get(lang) ?? 0) + lines);
-      } catch {
-        // fichier supprimé du disque mais encore suivi : on l'ignore
-      }
-    }
-  };
+  for (const line of out.split("\n")) {
+    if (line.length === 0) continue;
+    // Format : <rev>:<chemin>:<nombre>. Le chemin peut contenir « : »,
+    // on découpe donc par les extrémités, pas par split.
+    const firstColon = line.indexOf(":");
+    const lastColon = line.lastIndexOf(":");
+    if (firstColon === -1 || lastColon <= firstColon) continue;
 
-  await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+    const path = line.slice(firstColon + 1, lastColon);
+    const count = Number.parseInt(line.slice(lastColon + 1), 10);
+    if (!Number.isFinite(count) || !isCountable(path)) continue;
+
+    const lang = LANGUAGES[extensionOf(path)]!;
+    totals.set(lang, (totals.get(lang) ?? 0) + count);
+  }
 
   return [...totals.entries()]
     .map(([language, lines]) => ({ language, lines }))
     .sort((a, b) => b.lines - a.lines);
 }
 
-async function detectStack(root: string, tracked: readonly string[]): Promise<string[]> {
+/** Liste les chemins présents dans l'arbre du commit (et non dans l'index). */
+export async function filesAtRev(root: string, rev: string): Promise<string[]> {
+  return gitLines(root, ["ls-tree", "-r", "--name-only", rev]);
+}
+
+/** Lit un fichier **tel qu'il était dans le commit**, sans toucher au disque. */
+async function showAtRev(root: string, rev: string, path: string): Promise<string | null> {
+  return git(root, ["show", `${rev}:${path}`]).catch(() => null);
+}
+
+export async function detectStackAtRev(
+  root: string,
+  rev: string,
+  files: readonly string[],
+): Promise<string[]> {
   const found = new Set<string>();
+  const own = files.filter((p) => !isVendored(p));
   const manifests = new Set(STACK_MARKERS.map(([file]) => file));
-  const candidates = tracked.filter((p) => !isVendored(p) && manifests.has(basename(p)));
+  const candidates = own.filter((p) => manifests.has(basename(p)));
 
   for (const path of candidates.slice(0, 40)) {
-    let content: string;
-    try {
-      content = await readFile(join(root, path), "utf8");
-    } catch {
-      continue;
-    }
+    const content = await showAtRev(root, rev, path);
+    if (content === null) continue;
     for (const [file, marker, label] of STACK_MARKERS) {
       if (basename(path) === file && marker.test(content)) found.add(label);
     }
   }
 
-  const own = tracked.filter((p) => !isVendored(p));
   if (own.some((p) => /^(docker-compose|compose)[.\w-]*\.ya?ml$/i.test(basename(p))))
     found.add("Docker");
   if (own.some((p) => p.startsWith(".github/workflows/"))) found.add("GitHub Actions");
@@ -205,7 +225,7 @@ export async function scanRepository(options: ScanOptions): Promise<Bundle> {
   const [commits, mergeShaLines, tracked] = await Promise.all([
     readCommits(root, headSha),
     gitLines(root, ["log", headSha, "--merges", "--format=%H%x00%ae%x00%an"]),
-    gitLines(root, ["ls-files"]),
+    filesAtRev(root, headSha),
   ]);
 
   const authors = await collectAuthors(root, headSha);
@@ -242,9 +262,8 @@ export async function scanRepository(options: ScanOptions): Promise<Bundle> {
   );
   const rank = otherGroups.filter((g) => g.commits > myGroupCommits).length + 1;
 
-  const countable = tracked.filter(isCountable);
-  const volume = options.countLines === false ? [] : await countLines(root, countable);
-  const stack = await detectStack(root, tracked);
+  const volume = options.countLines === false ? [] : await countLinesAtRev(root, headSha);
+  const stack = await detectStackAtRev(root, headSha, tracked);
 
   return {
     schemaVersion: 1,

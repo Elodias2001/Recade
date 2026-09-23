@@ -103,6 +103,7 @@ Palette, emblème et principe structurel : [`brand/README.md`](brand/README.md).
 
 - ~~**v0** — scanner d'un dépôt : identités, compteurs, SHAs → JSON~~ ✅
 - ~~**v0.1** — `verify` : recalcule et compare une attestation~~ ✅
-- **v0.2** — rendu HTML autonome
+- ~~**v0.2** — `verify` recalcule aussi volume et stack~~ ✅
+- **v0.3** — rendu HTML autonome
 - **v1** — plusieurs dépôts, mapping face à une offre d'emploi
 - **plus tard** — *Djeho*, le coffre web qui héberge les attestations

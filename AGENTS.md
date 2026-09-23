@@ -24,11 +24,11 @@ Le remote passe par l'alias SSH `github-perso` (clé `id_ed25519_perso`), pas pa
 
 ## Règles produit
 
-1. **Aucun contenu ne sort de la machine.** Le CLI lit `.git` et, pour compter
-   les lignes, ouvre les fichiers suivis — mais il n'en retient que des nombres.
-   Aucun appel réseau, aucune télémétrie, pas de backend. L'invariant porte sur
-   ce qui sort, pas sur ce qui est lu. Toute proposition qui le viole est
-   rejetée, quel que soit son intérêt.
+1. **Aucun contenu ne sort de la machine, et rien n'est lu hors de Git.** Le CLI
+   interroge le dépôt (`git log`, `git grep`, `git ls-tree`, `git show`) et n'en
+   retient que des nombres. Il n'ouvre aucun fichier du dossier de travail, ne
+   fait aucun appel réseau, n'a ni télémétrie ni backend. Toute proposition qui
+   le viole est rejetée, quel que soit son intérêt.
 2. **Tout chiffre publié doit être réfutable.** Un compteur sans le SHA qui
    permet de le recalculer n'a pas sa place dans le bundle.
 3. **Ne jamais deviner une identité.** En cas de doute sur l'appartenance d'un
@@ -37,6 +37,10 @@ Le remote passe par l'alias SSH `github-perso` (clé `id_ed25519_perso`), pas pa
    `node_modules/`, `github.com/`…) est exclu du volume comme de la détection de
    stack. CIR embarque un plugin Traefik en Go : l'attester ferait mentir
    l'attestation.
+5. **Mesurer l'arbre du commit, jamais le disque.** Un commit est une
+   photographie scellée ; le dossier de travail contient du non-commité et
+   n'est reproductible par personne. Tout compteur se calcule depuis `headSha`
+   — c'est la condition pour que `verify` existe.
 
 ## Code
 

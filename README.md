@@ -29,7 +29,9 @@ pour qu'il rédige de jolies phrases. Inutilisable sur du travail confidentiel.
 ## Ce que fait Récade
 
 ```bash
-npx recade scan ~/Projets/mon-monorepo
+npx recade scan ~/Projets/mon-monorepo                    # au terminal
+npx recade scan ~/Projets/mon-monorepo --html att.html   # fichier autonome
+npx recade verify att.html ~/Projets/mon-monorepo        # réfutation
 ```
 
 Lit `.git` en local. N'ouvre jamais un fichier de code, n'envoie rien nulle part.
@@ -50,6 +52,10 @@ premier commit, celui d'ancrage, et celui de chaque fusion comptée** :
 ```bash
 recade verify attestation.json ~/Projets/le-depot
 ```
+
+Une attestation HTML embarque son propre bundle : `recade verify` accepte
+indifféremment le `.json` et le `.html`. Le fichier HTML **est** l'attestation,
+pas une image de celle-ci.
 
 Quiconque a accès au dépôt recalcule et retombe sur les mêmes chiffres, ou pas.
 La vérification s'appuie sur les signatures **déclarées dans l'attestation**,
@@ -104,6 +110,6 @@ Palette, emblème et principe structurel : [`brand/README.md`](brand/README.md).
 - ~~**v0** — scanner d'un dépôt : identités, compteurs, SHAs → JSON~~ ✅
 - ~~**v0.1** — `verify` : recalcule et compare une attestation~~ ✅
 - ~~**v0.2** — `verify` recalcule aussi volume et stack~~ ✅
-- **v0.3** — rendu HTML autonome
+- ~~**v0.3** — rendu HTML autonome, vérifiable tel quel~~ ✅
 - **v1** — plusieurs dépôts, mapping face à une offre d'emploi
 - **plus tard** — *Djeho*, le coffre web qui héberge les attestations

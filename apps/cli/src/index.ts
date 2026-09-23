@@ -17,6 +17,7 @@ import { renderAuthors, renderBundle, renderVerification } from "./render.js";
 import { scanRepository } from "./scan.js";
 import { bundleSchema } from "./schema.js";
 import { verifyBundle } from "./verify.js";
+import { renderHtmlAttestation } from "./html.js";
 import { readFile } from "node:fs/promises";
 
 export const VERSION = "0.0.0";
@@ -75,11 +76,12 @@ program
   .option("--me <email...>", "adresses à compter comme vôtres, pour ce scan seulement")
   .option("--json", "écrit le bundle JSON sur la sortie standard")
   .option("-o, --out <fichier>", "écrit le bundle JSON dans un fichier")
-  .option("--no-lines", "n'ouvre aucun fichier : compteurs Git seulement")
+  .option("--html <fichier>", "écrit une attestation HTML autonome")
+  .option("--no-lines", "ne compte pas les lignes : compteurs de commits seulement")
   .action(
     async (
       chemin: string,
-      opts: { me?: string[]; json?: boolean; out?: string; lines: boolean },
+      opts: { me?: string[]; json?: boolean; out?: string; html?: string; lines: boolean },
     ) => {
       const root = await resolveRoot(chemin);
       const identity = await resolveIdentity(root, opts.me);
@@ -97,6 +99,11 @@ program
       if (opts.out) {
         await writeFile(resolve(opts.out), `${JSON.stringify(parsed.data, null, 2)}\n`, "utf8");
         process.stderr.write(`  ${pc.green("✓")} bundle écrit dans ${pc.bold(opts.out)}\n`);
+      }
+
+      if (opts.html) {
+        await writeFile(resolve(opts.html), renderHtmlAttestation(parsed.data), "utf8");
+        process.stderr.write(`  ${pc.green("✓")} attestation écrite dans ${pc.bold(opts.html)}\n`);
       }
 
       if (opts.json) process.stdout.write(`${JSON.stringify(parsed.data, null, 2)}\n`);
@@ -146,7 +153,7 @@ program
 program
   .command("verify")
   .description("Recalcule une attestation depuis le dépôt et la confronte à ce qu'elle affirme")
-  .argument("<bundle>", "fichier JSON de l'attestation")
+  .argument("<attestation>", "attestation à vérifier (.json ou .html)")
   .argument("[chemin]", "dépôt à confronter", ".")
   .action(async (bundlePath: string, chemin: string) => {
     let raw: string;
@@ -156,11 +163,21 @@ program
       fail(`Attestation introuvable : ${bundlePath}`);
     }
 
+    // Une attestation HTML embarque son bundle : le fichier HTML *est*
+    // l'attestation, pas une image de celle-ci.
+    const embedded = /<script type="application\/json" id="recade-bundle">([\s\S]*?)<\/script>/.exec(
+      raw,
+    );
+    const source = embedded?.[1] ?? raw;
+
     let json: unknown;
     try {
-      json = JSON.parse(raw);
+      json = JSON.parse(source.replaceAll("\\u003c", "<"));
     } catch {
-      fail(`${bundlePath} n'est pas du JSON valide.`);
+      fail(
+        `${bundlePath} ne contient pas d'attestation lisible.\n` +
+          `    Attendu : un bundle JSON, ou un HTML produit par « recade scan --html ».`,
+      );
     }
 
     const parsed = bundleSchema.safeParse(json);

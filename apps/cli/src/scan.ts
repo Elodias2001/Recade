@@ -10,7 +10,7 @@ import {
 } from "./identity.js";
 import type { Bundle, LanguageVolume } from "./schema.js";
 
-interface Commit {
+export interface Commit {
   readonly sha: string;
   readonly date: string;
   readonly author: Author;
@@ -115,8 +115,8 @@ function isCountable(path: string): boolean {
   return LANGUAGES[extensionOf(path)] !== undefined;
 }
 
-async function readCommits(root: string): Promise<Commit[]> {
-  const lines = await gitLines(root, ["log", "--all", "--format=%H%x00%aI%x00%an%x00%ae"]);
+export async function readCommits(root: string, rev: string): Promise<Commit[]> {
+  const lines = await gitLines(root, ["log", rev, "--format=%H%x00%aI%x00%an%x00%ae"]);
   const commits: Commit[] = [];
   for (const line of lines) {
     const [sha, date, name, email] = line.split("\0");
@@ -197,14 +197,18 @@ export async function scanRepository(options: ScanOptions): Promise<Bundle> {
     throw new Error("Ce dépôt n'a aucun commit — il n'y a rien à attester.");
   }
 
-  const [commits, mergeShaLines, tracked, headSha] = await Promise.all([
-    readCommits(root),
-    gitLines(root, ["log", "--all", "--merges", "--format=%H%x00%ae%x00%an"]),
+  // Tout est compté depuis `headSha`, jamais depuis `--all` : les références
+  // bougent et se suppriment, un SHA non. C'est ce qui rend `recade verify`
+  // possible — sans cet ancrage, aucun chiffre n'est reproductible.
+  const headSha = (await git(root, ["rev-parse", "HEAD"])).trim();
+
+  const [commits, mergeShaLines, tracked] = await Promise.all([
+    readCommits(root, headSha),
+    gitLines(root, ["log", headSha, "--merges", "--format=%H%x00%ae%x00%an"]),
     gitLines(root, ["ls-files"]),
-    git(root, ["rev-parse", "HEAD"]).then((s) => s.trim()),
   ]);
 
-  const authors = await collectAuthors(root);
+  const authors = await collectAuthors(root, headSha);
   const groups = groupAuthors(authors);
 
   const mine = commits.filter((c) => matchesIdentity(c.author, identity));

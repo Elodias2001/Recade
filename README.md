@@ -45,9 +45,22 @@ Stack détectée     Next.js 16 · Hono 4 · PostgreSQL 16 · Docker
 ```
 
 Un CLI local pourrait mentir. C'est pourquoi l'attestation embarque le **SHA du
-premier commit, du dernier, et de chaque merge compté** : quiconque a accès au
-dépôt relance `recade verify` et retombe sur les mêmes chiffres, ou pas. On ne
-passe pas de « crois-moi » à « prouvé », mais de « crois-moi » à
+premier commit, celui d'ancrage, et celui de chaque fusion comptée** :
+
+```bash
+recade verify attestation.json ~/Projets/le-depot
+```
+
+Quiconque a accès au dépôt recalcule et retombe sur les mêmes chiffres, ou pas.
+La vérification s'appuie sur les signatures **déclarées dans l'attestation**,
+jamais sur une configuration locale : un recruteur vérifie sans rien installer
+de plus que le CLI.
+
+Tout est compté depuis `headSha`, jamais depuis `--all` : les branches bougent
+et se suppriment, un SHA non. L'attestation décrit un instant précis et reste
+vérifiable même si le projet a continué d'avancer.
+
+On ne passe pas de « crois-moi » à « prouvé », mais de « crois-moi » à
 **« réfutable sur demande »**.
 
 ## Identités
@@ -88,8 +101,8 @@ Palette, emblème et principe structurel : [`brand/README.md`](brand/README.md).
 
 ## Feuille de route
 
-- **v0** — scanner d'un dépôt : identités, compteurs, SHAs → JSON
-- **v0.1** — `verify` : recalcule et compare une attestation
+- ~~**v0** — scanner d'un dépôt : identités, compteurs, SHAs → JSON~~ ✅
+- ~~**v0.1** — `verify` : recalcule et compare une attestation~~ ✅
 - **v0.2** — rendu HTML autonome
 - **v1** — plusieurs dépôts, mapping face à une offre d'emploi
 - **plus tard** — *Djeho*, le coffre web qui héberge les attestations

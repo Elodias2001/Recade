@@ -1,5 +1,6 @@
 import pc from "picocolors";
 import type { Bundle } from "./schema.js";
+import type { Verification } from "./verify.js";
 
 /**
  * Sortie terminal selon le principe **manche / lame** : le manche porte
@@ -106,5 +107,42 @@ export function renderAuthors(
   }
 
   out.push("");
+  return out.join("\n");
+}
+
+export function renderVerification(v: Verification): string {
+  const out: string[] = [""];
+  const confirmee = v.verdict === "confirmée";
+
+  out.push(`  ${laiton("◆")}  ${pc.bold("RÉCADE")}   ${cendre("vérification d'attestation")}`);
+  out.push(`     ${pc.bold(v.repositoryName)}`);
+  out.push("");
+  out.push(rule());
+
+  for (const c of v.checks) {
+    const mark =
+      c.status === "ok" ? pc.green("✓") : c.status === "divergent" ? pc.red("✗") : pc.red("?");
+    const label = cendre(c.label.padEnd(22, " "));
+    const detail =
+      c.status === "ok"
+        ? c.found
+        : `${pc.red(c.found)}   ${cendre(`attesté : ${c.claimed}`)}`;
+    out.push(`  ${mark} ${label}${detail}`);
+  }
+
+  out.push(rule());
+
+  if (v.notVerified.length > 0) {
+    out.push(`  ${cendre(`Non recalculé par cette version : ${v.notVerified.join(" · ")}`)}`);
+  }
+
+  out.push("");
+  out.push(
+    confirmee
+      ? `  ${pc.green("✓")} ${pc.bold("Attestation confirmée")} ${cendre("— tous les compteurs se recalculent à l'identique.")}`
+      : `  ${pc.red("✗")} ${pc.bold("Attestation réfutée")} ${cendre("— au moins un compteur ne tient pas.")}`,
+  );
+  out.push("");
+
   return out.join("\n");
 }

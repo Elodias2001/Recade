@@ -39,8 +39,8 @@ export const normalizeName = (name: string): string => name.trim();
  * n'importe quoi — « Elodias ADIMOU - TCM » contient déjà un tiret et des
  * espaces — mais jamais un NUL ni un saut de ligne.
  */
-export async function collectAuthors(root: string): Promise<Author[]> {
-  const lines = await gitLines(root, ["log", "--all", "--format=%an%x00%ae"]);
+export async function collectAuthors(root: string, rev = "--all"): Promise<Author[]> {
+  const lines = await gitLines(root, ["log", rev, "--format=%an%x00%ae"]);
 
   const tally = new Map<string, { name: string; email: string; commits: number }>();
   for (const line of lines) {

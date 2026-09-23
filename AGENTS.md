@@ -29,14 +29,14 @@ Le remote passe par l'alias SSH `github-perso` (clé `id_ed25519_perso`), pas pa
    Aucun appel réseau, aucune télémétrie, pas de backend. L'invariant porte sur
    ce qui sort, pas sur ce qui est lu. Toute proposition qui le viole est
    rejetée, quel que soit son intérêt.
-4. **Le code de tiers ne prouve rien.** Tout chemin vendorisé (`vendor/`,
-   `node_modules/`, `github.com/`…) est exclu du volume comme de la détection de
-   stack. CIR embarque un plugin Traefik en Go : l'attester ferait mentir
-   l'attestation.
 2. **Tout chiffre publié doit être réfutable.** Un compteur sans le SHA qui
    permet de le recalculer n'a pas sa place dans le bundle.
 3. **Ne jamais deviner une identité.** En cas de doute sur l'appartenance d'un
    auteur, on demande — on ne rattache pas au hasard.
+4. **Le code de tiers ne prouve rien.** Tout chemin vendorisé (`vendor/`,
+   `node_modules/`, `github.com/`…) est exclu du volume comme de la détection de
+   stack. CIR embarque un plugin Traefik en Go : l'attester ferait mentir
+   l'attestation.
 
 ## Code
 

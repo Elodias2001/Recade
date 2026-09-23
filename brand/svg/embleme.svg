@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Emblème Fonte Hountondji">
+  <title>Emblème — sceau de la lame</title>
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#B8863B" stroke-width="1.7"/>
+  <circle cx="32" cy="32" r="24" fill="none" stroke="#B8863B" stroke-width="0.85" opacity="0.55"/>
+  <path d="M32 12.5 L43.8 24.3 L43.8 39.7 L32 51.5 L20.2 39.7 L20.2 24.3 Z"
+        fill="none" stroke="#14120F" stroke-width="1.8" stroke-linejoin="miter"/>
+  <path d="M32 20.9 L38.3 27.1 L38.3 36.9 L32 43.1 L25.7 36.9 L25.7 27.1 Z" fill="#B8863B"/>
+  <circle cx="32" cy="32" r="3.6" fill="#F2EBDD"/>
+</svg>

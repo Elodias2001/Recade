@@ -1,6 +1,6 @@
 {
   "name": "recade",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Atteste ce que tu as construit — sans faire sortir une ligne de code.",
   "license": "MIT",
   "author": "Elodias ADIMOU <olouwagnon@gmail.com>",
@@ -34,5 +34,21 @@
     "@types/node": "^26.6.2",
     "tsup": "^8.5.1",
     "vitest": "^5.0.1"
+  },
+  "keywords": [
+    "git",
+    "cli",
+    "attestation",
+    "contribution",
+    "portfolio",
+    "developer-tools",
+    "privacy",
+    "proof",
+    "resume",
+    "freelance"
+  ],
+  "homepage": "https://recade.sabar.app",
+  "bugs": {
+    "url": "https://github.com/Elodias2001/Recade/issues"
   }
 }

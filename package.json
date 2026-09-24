@@ -10,9 +10,11 @@
     "dev": "turbo run dev",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "type-check": "turbo run type-check"
+    "type-check": "turbo run type-check",
+    "docs": "node scripts/build-docs.mjs"
   },
   "devDependencies": {
+    "marked": "^18.0.14",
     "turbo": "^2.11.3",
     "typescript": "^7.0.2"
   }

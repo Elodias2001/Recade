@@ -128,6 +128,17 @@ pnpm build
 node apps/cli/dist/index.js scan <chemin>
 ```
 
+## Documentation
+
+| Fiche | Pour qui |
+|---|---|
+| [`docs/01-architecture.md`](docs/01-architecture.md) | Qui reprend le code : décisions, contrat, limites |
+| [`docs/02-guide-utilisateur.md`](docs/02-guide-utilisateur.md) | Développeur, vérificateur, agence |
+| [`docs/03-plan-de-tests.md`](docs/03-plan-de-tests.md) | Couverture, recette manuelle, valeurs de référence |
+
+Le Markdown est la source. `pnpm docs` régénère le HTML consultable
+(`docs/index.html`) — **ne jamais éditer le HTML à la main**.
+
 ## Design
 
 Direction **Fonte Hountondji**, d'après la corporation royale des forgerons et

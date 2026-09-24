@@ -134,7 +134,7 @@ reconstruit en ~10 ms.
 | Commande | Effet |
 |---|---|
 | `pnpm build` | Construit le CLI (`apps/cli/dist`) |
-| `pnpm test` | Vitest — 23 tests, ~200 ms |
+| `pnpm test` | Vitest — 37 tests, ~2,5 s |
 | `pnpm type-check` | `tsc --noEmit`, mode strict |
 | `pnpm docs` | Régénère `docs/*.html` depuis les `.md` |
 | `pnpm --filter recade dev` | Reconstruction en continu |
@@ -174,7 +174,7 @@ est refusée, quel que soit son intérêt.
 
 ```bash
 pnpm type-check     # aucune erreur
-pnpm test           # 23 passed
+pnpm test           # 37 passed
 pnpm build          # Build success
 pnpm docs           # 5 fiches générées
 ```

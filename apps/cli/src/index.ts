@@ -13,11 +13,17 @@ import {
   saveIdentityConfig,
   type IdentityConfig,
 } from "./identity.js";
-import { renderAuthors, renderBundle, renderVerification } from "./render.js";
+import {
+  renderAuthors,
+  renderBundle,
+  renderPortfolioVerification,
+  renderVerification,
+} from "./render.js";
 import { scanRepository } from "./scan.js";
-import { bundleSchema } from "./schema.js";
-import { verifyBundle } from "./verify.js";
-import { renderHtmlAttestation } from "./html.js";
+import { bundleSchema, portfolioSchema } from "./schema.js";
+import { buildPortfolio } from "./portfolio.js";
+import { verifyBundle, verifyPortfolio } from "./verify.js";
+import { renderHtmlAttestation, renderHtmlPortfolio } from "./html.js";
 import { htmlToPdf, NoBrowserError } from "./pdf.js";
 import { readFile } from "node:fs/promises";
 
@@ -73,7 +79,7 @@ program
 program
   .command("scan")
   .description("Compte votre contribution dans un dépôt et produit l'attestation")
-  .argument("[chemin]", "chemin du dépôt", ".")
+  .argument("[chemins...]", "un ou plusieurs dépôts")
   .option("--me <email...>", "adresses à compter comme vôtres, pour ce scan seulement")
   .option("--json", "écrit le bundle JSON sur la sortie standard")
   .option("-o, --out <fichier>", "écrit le bundle JSON dans un fichier")
@@ -82,7 +88,7 @@ program
   .option("--no-lines", "ne compte pas les lignes : compteurs de commits seulement")
   .action(
     async (
-      chemin: string,
+      chemins: string[],
       opts: {
         me?: string[];
         json?: boolean;
@@ -92,17 +98,27 @@ program
         lines: boolean;
       },
     ) => {
-      const root = await resolveRoot(chemin);
-      const identity = await resolveIdentity(root, opts.me);
+      const paths = chemins.length > 0 ? chemins : ["."];
+      const roots: string[] = [];
+      for (const p of paths) roots.push(await resolveRoot(p));
 
-      const bundle = await scanRepository({ root, identity, countLines: opts.lines }).catch(
-        (error: unknown) => fail(error instanceof Error ? error.message : String(error)),
-      );
+      const identity = await resolveIdentity(roots[0]!, opts.me);
 
-      // On valide notre propre sortie : le bundle est un contrat, pas un objet libre.
-      const parsed = bundleSchema.safeParse(bundle);
+      const bundles = [];
+      for (const root of roots) {
+        bundles.push(
+          await scanRepository({ root, identity, countLines: opts.lines }).catch(
+            (error: unknown) => fail(error instanceof Error ? error.message : String(error)),
+          ),
+        );
+      }
+
+      // On valide notre propre sortie : le document est un contrat, pas un objet libre.
+      const single = bundles.length === 1;
+      const schema = single ? bundleSchema : portfolioSchema;
+      const parsed = schema.safeParse(single ? bundles[0] : buildPortfolio(bundles));
       if (!parsed.success) {
-        fail(`Le bundle produit est invalide :\n${parsed.error.message}`);
+        fail(`Le document produit est invalide :\n${parsed.error.message}`);
       }
 
       if (opts.out) {
@@ -111,7 +127,10 @@ program
       }
 
       if (opts.html || opts.pdf) {
-        const html = renderHtmlAttestation(parsed.data);
+        const html =
+          "kind" in parsed.data
+            ? renderHtmlPortfolio(parsed.data)
+            : renderHtmlAttestation(parsed.data);
 
         if (opts.html) {
           await writeFile(resolve(opts.html), html, "utf8");
@@ -135,6 +154,9 @@ program
       }
 
       if (opts.json) process.stdout.write(`${JSON.stringify(parsed.data, null, 2)}\n`);
+      else if ("kind" in parsed.data)
+        for (const b of parsed.data.attestations)
+          process.stdout.write(`${renderBundle(b)}\n`);
       else process.stdout.write(`${renderBundle(parsed.data)}\n`);
     },
   );
@@ -182,8 +204,8 @@ program
   .command("verify")
   .description("Recalcule une attestation depuis le dépôt et la confronte à ce qu'elle affirme")
   .argument("<attestation>", "attestation à vérifier (.json ou .html)")
-  .argument("[chemin]", "dépôt à confronter", ".")
-  .action(async (bundlePath: string, chemin: string) => {
+  .argument("[chemins...]", "dépôt(s) à confronter")
+  .action(async (bundlePath: string, chemins: string[]) => {
     let raw: string;
     try {
       raw = await readFile(resolve(bundlePath), "utf8");
@@ -208,13 +230,24 @@ program
       );
     }
 
-    const parsed = bundleSchema.safeParse(json);
-    if (!parsed.success) {
-      fail(`Attestation malformée — elle ne respecte pas le schéma v1 :\n${parsed.error.message}`);
+    const paths = chemins.length > 0 ? chemins : ["."];
+    const roots: string[] = [];
+    for (const p of paths) roots.push(await resolveRoot(p));
+
+    const asPortfolio = portfolioSchema.safeParse(json);
+    if (asPortfolio.success) {
+      const results = await verifyPortfolio(roots, asPortfolio.data);
+      process.stdout.write(`${renderPortfolioVerification(results)}\n`);
+      if (results.some((r) => r.verification?.verdict === "réfutée")) process.exitCode = 1;
+      return;
     }
 
-    const root = await resolveRoot(chemin);
-    const result = await verifyBundle(root, parsed.data);
+    const parsed = bundleSchema.safeParse(json);
+    if (!parsed.success) {
+      fail(`Document malformé — ni attestation ni dossier au schéma v1 :\n${parsed.error.message}`);
+    }
+
+    const result = await verifyBundle(roots[0]!, parsed.data);
     process.stdout.write(`${renderVerification(result)}\n`);
     if (result.verdict === "réfutée") process.exitCode = 1;
   });

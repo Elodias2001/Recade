@@ -57,6 +57,26 @@ Le remote passe par l'alias SSH `github-perso` (clé `id_ed25519_perso`), pas pa
 Conventional commits, en français.
 `feat(cli): …` · `fix(cli): …` · `docs: …` · `chore: …` · `refactor: …`
 
+## Site public et pages légales
+
+Le site (`site/`) est bâti par `scripts/build-site.mjs` depuis des modules, avec
+une **source unique** pour l'identité : `site/config.mjs`. Une coordonnée ne
+s'écrit jamais deux fois.
+
+Règles à ne pas enfreindre :
+
+1. **Aucun tiret cadratin** (`—` ni `–`) dans les textes visibles du site.
+   C'est testé (`site/site.test.mjs`), comme sur les autres projets publics.
+2. **Toute nouvelle collecte de donnée, tout prestataire, tout cookie, tout
+   script tiers impose de mettre à jour `site/pages/confidentialite.mjs` et la
+   date `legal.miseAJour` dans `site/config.mjs`.** Aujourd'hui le site ne pose
+   aucun cookie et ne collecte rien : cette page dit vrai, elle doit le rester.
+3. Un changement d'hébergeur ou de localisation du serveur rend les mentions
+   légales fausses : corriger `hebergement` dans `site/config.mjs`.
+4. Les en-têtes de sécurité de `nginx.conf` sont **répétés dans chaque bloc
+   `location`** : en nginx, un `add_header` dans un bloc enfant annule tous ceux
+   hérités du parent. Ne pas « factoriser » sans vérifier la réponse réelle.
+
 ## Design
 
 Direction **Fonte Hountondji** — voir [`brand/README.md`](brand/README.md).

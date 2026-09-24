@@ -11,3 +11,4 @@ local-secrets/
 
 # documentation générée — source dans docs/*.md
 docs/*.html
+dist-site/

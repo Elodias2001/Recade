@@ -136,7 +136,7 @@ reconstruit en ~10 ms.
 | `pnpm build` | Construit le CLI (`apps/cli/dist`) |
 | `pnpm test` | Vitest — 37 tests, ~2,5 s |
 | `pnpm type-check` | `tsc --noEmit`, mode strict |
-| `pnpm docs` | Régénère `docs/*.html` depuis les `.md` |
+| `pnpm build:docs` | Régénère `docs/*.html` depuis les `.md` |
 | `pnpm --filter recade dev` | Reconstruction en continu |
 
 ## Où se trouve quoi
@@ -176,7 +176,7 @@ est refusée, quel que soit son intérêt.
 pnpm type-check     # aucune erreur
 pnpm test           # 37 passed
 pnpm build          # Build success
-pnpm docs           # 5 fiches générées
+pnpm build:docs           # 5 fiches générées
 ```
 
 Puis, sur un dépôt réel dont vous connaissez les chiffres : un `scan`, un
@@ -194,7 +194,7 @@ La recette complète est dans [le plan de tests](04-plan-de-tests.html).
 | `Permission denied (publickey)` au clone | Alias SSH absent sur cette machine | Utiliser `git@github.com:` ou définir l'alias dans `~/.ssh/config` |
 | `Aucun navigateur Chromium trouvé` | Pas de Chrome pour le PDF | L'installer, ou `RECADE_CHROME=/chemin/vers/chrome` |
 | `recade` introuvable après `pnpm link` | Le dossier des binaires globaux de pnpm n'est pas dans le `PATH` | `pnpm setup`, puis rouvrir le terminal |
-| Le HTML de `docs/` ne change pas | Il est généré | Éditer le `.md`, puis `pnpm docs` |
+| Le HTML de `docs/` ne change pas | Il est généré | Éditer le `.md`, puis `pnpm build:docs` |
 | Des processus Chrome traînent | Régression du nettoyage après PDF | `pkill -f print-to-pdf`, puis voir R12 du plan de tests |
 
 ## Ce qui ne peut pas mal tourner

@@ -137,8 +137,19 @@ node apps/cli/dist/index.js scan <chemin>
 | [`docs/03-guide-utilisateur.md`](docs/03-guide-utilisateur.md) | Développeur, vérificateur, agence |
 | [`docs/04-plan-de-tests.md`](docs/04-plan-de-tests.md) | Couverture, recette manuelle, valeurs de référence |
 
-Le Markdown est la source. `pnpm docs` régénère le HTML consultable
+Le Markdown est la source. `pnpm build:docs` régénère le HTML consultable
 (`docs/index.html`) — **ne jamais éditer le HTML à la main**.
+
+## Site
+
+La documentation est publiée sur **[recade.sabar.app](https://recade.sabar.app)**.
+Site statique (nginx) construit par `Dockerfile`, derrière le Traefik partagé du
+VPS sur le réseau `gcw-public`, déployé par GitHub Actions à chaque push sur
+`main`. Le CLI n'ayant pas de backend, il n'y a rien d'autre à faire tourner.
+
+```bash
+docker compose up --build        # local → http://localhost:8080
+```
 
 ## Design
 

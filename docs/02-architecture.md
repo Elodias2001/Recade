@@ -230,7 +230,7 @@ pnpm install
 pnpm build          # tsup → apps/cli/dist
 pnpm test           # vitest
 pnpm type-check     # tsc --noEmit, strict
-pnpm docs           # docs/*.md → docs/*.html
+pnpm build:docs           # docs/*.md → docs/*.html
 ```
 
 Le HTML de `docs/` n'est jamais édité à la main.

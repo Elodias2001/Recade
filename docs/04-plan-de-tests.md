@@ -7,7 +7,7 @@ elles servent à détecter une régression, pas à être vraies éternellement.
 ## Ce que les tests automatisés couvrent
 
 ```bash
-pnpm test           # 23 tests, 3 fichiers, ~200 ms
+pnpm test           # 37 tests, 4 fichiers, ~2,5 s
 ```
 
 ### `identity.test.ts` — le regroupement des signatures
@@ -51,13 +51,48 @@ Les cas viennent de dépôts réels, pas d'une imagination.
 | Bundle relisible | Ce qui est embarqué repasse le schéma |
 | Aucune ressource distante | Ni `http`, ni `@import` |
 
+### `integration.test.ts` — le moteur, contre un vrai dépôt
+
+Un dépôt Git est fabriqué dans un dossier temporaire, avec les cas rencontrés
+sur CIR : deux signatures pour une même personne, un tiers, du code vendorisé,
+un fichier de verrouillage, une fusion, et une branche abandonnée. Dates fixes
+et `HOME` isolé pour que la machine d'exécution ne change rien.
+
+| Test | Ce qu'il verrouille |
+|---|---|
+| Commits depuis HEAD | 8 commits ; la branche abandonnée ne compte pas |
+| Deux signatures fusionnées | 2 contributeurs, rang 1 |
+| Fusions et leurs SHA | 1 fusion, SHA de 40 caractères |
+| Vendorisé et verrouillage exclus | Exactement 70 lignes, pas 14 070 |
+| Pile non vendorisée | `Hono` présent, `Go` absent |
+| **Arbre et non disque** | Salir un fichier **suivi** ne change aucun chiffre |
+| Identité inconnue | Refus explicite |
+| Vérification authentique | Confirmée |
+| Commits gonflés · fusion fabriquée · volume gonflé · pile inventée | Réfutées |
+| Ancrage introuvable | Signalé « absent », pas recompté à côté |
+| Vérification sans configuration locale | Tient sur les seules signatures du bundle |
+
+> **Pourquoi salir un fichier *suivi* et non un fichier nouveau.** Un fichier
+> jamais ajouté n'apparaît pas non plus dans `git ls-files` : le test passerait
+> même avec l'ancienne implémentation qui lisait le disque. Seule la
+> modification d'un fichier déjà suivi distingue les deux.
+
+### Ces tests détectent-ils vraiment une régression ?
+
+Vérifié par sabotage volontaire, le 24 septembre 2026 :
+
+| Sabotage | Tests qui tombent |
+|---|---|
+| Retirer l'exclusion du code vendorisé | 1 |
+| Recompter depuis `--all` au lieu de `headSha` | 3 |
+
+Un test qui ne tombe jamais ne protège rien. À refaire après toute
+réorganisation du moteur.
+
 ## Ce qui n'est PAS couvert automatiquement
 
 À vérifier à la main. C'est ici que se cachent les régressions.
 
-- **Les appels Git réels.** `git.ts`, `scan.ts` et `verify.ts` ne sont testés
-  contre aucun dépôt en automatique. Un test d'intégration qui fabriquerait un
-  dépôt jetable serait la prochaine brique utile.
 - **La production du PDF.** Dépend d'un Chromium installé.
 - **Le rendu terminal.** Couleurs, alignements, largeur.
 - **Les gros dépôts.** Aucune mesure de performance verrouillée.
@@ -228,7 +263,7 @@ arrivé, treize d'un coup.
 
 ```bash
 pnpm type-check     # aucune erreur
-pnpm test           # 23/23
+pnpm test           # 37/37
 pnpm build          # tsup sans avertissement
 pnpm docs           # documentation régénérée
 ```
@@ -240,11 +275,8 @@ invariants.
 
 Par ordre d'importance :
 
-1. **Pas de test d'intégration Git.** Fabriquer un dépôt jetable dans un
-   dossier temporaire, y commiter sous plusieurs identités, et vérifier les
-   compteurs de bout en bout. C'est ce qui manque le plus.
-2. **Aucune mesure de performance verrouillée.** Le passage du disque à
+1. **Aucune mesure de performance verrouillée.** Le passage du disque à
    `git grep` a fait tomber le scan à 0,1 s ; rien ne l'empêche de remonter.
-3. **Windows jamais exécuté.**
-4. **Le rendu HTML n'est pas comparé visuellement.** Une régression de mise en
+2. **Windows jamais exécuté.**
+3. **Le rendu HTML n'est pas comparé visuellement.** Une régression de mise en
    page passerait inaperçue.

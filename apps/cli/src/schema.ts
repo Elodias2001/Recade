@@ -94,6 +94,9 @@ export const portfolioSchema = z.object({
 });
 
 export type Portfolio = z.infer<typeof portfolioSchema>;
+
+/** Réexport pratique : les tests et l'API parlent du même type d'identité. */
+export type { IdentityConfig } from "./identity.js";
 export type Bundle = z.infer<typeof bundleSchema>;
 export type LanguageVolume = z.infer<typeof languageVolume>;
 export type Signature = z.infer<typeof signature>;

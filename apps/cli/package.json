@@ -11,7 +11,7 @@
   },
   "type": "module",
   "bin": {
-    "recade": "./dist/index.js"
+    "recade": "dist/index.js"
   },
   "files": [
     "dist"

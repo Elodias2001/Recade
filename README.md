@@ -30,7 +30,8 @@ pour qu'il rédige de jolies phrases. Inutilisable sur du travail confidentiel.
 
 ```bash
 npx recade scan ~/Projets/mon-monorepo                    # au terminal
-npx recade scan ~/Projets/mon-monorepo --html att.html   # fichier autonome
+npx recade scan ~/Projets/mon-monorepo --html att.html   # autonome, vérifiable
+npx recade scan ~/Projets/mon-monorepo --pdf att.pdf     # à joindre à un dossier
 npx recade verify att.html ~/Projets/mon-monorepo        # réfutation
 ```
 
@@ -56,6 +57,15 @@ recade verify attestation.json ~/Projets/le-depot
 Une attestation HTML embarque son propre bundle : `recade verify` accepte
 indifféremment le `.json` et le `.html`. Le fichier HTML **est** l'attestation,
 pas une image de celle-ci.
+
+**Qui peut vérifier, et qui ne peut pas.** Un dépôt privé reste privé : un
+recruteur qui n'y a pas accès **ne peut rien recalculer**, et l'attestation le
+dit noir sur blanc plutôt que de le taire. La vérification s'adresse à celui qui
+détient le dépôt — l'ancien employeur, le client — c'est-à-dire précisément la
+personne qu'on appelle pour une prise de références. Récade ne remplace pas
+cette prise de références : il la rend chiffrée.
+
+Sur un dépôt public, en revanche, n'importe qui vérifie.
 
 Quiconque a accès au dépôt recalcule et retombe sur les mêmes chiffres, ou pas.
 La vérification s'appuie sur les signatures **déclarées dans l'attestation**,
@@ -111,5 +121,7 @@ Palette, emblème et principe structurel : [`brand/README.md`](brand/README.md).
 - ~~**v0.1** — `verify` : recalcule et compare une attestation~~ ✅
 - ~~**v0.2** — `verify` recalcule aussi volume et stack~~ ✅
 - ~~**v0.3** — rendu HTML autonome, vérifiable tel quel~~ ✅
+- ~~**v0.4** — `--pdf` et mention explicite de la portée de vérification~~ ✅
 - **v1** — plusieurs dépôts, mapping face à une offre d'emploi
+- **v1.1** — contresignature : le détenteur du dépôt confirme, et c'est ça que lit le recruteur
 - **plus tard** — `recade.dev`, le service qui héberge les attestations en ligne

@@ -163,6 +163,7 @@ export function renderHtmlAttestation(bundle: Bundle): string {
   .pied code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
     color:var(--laiton-clair);word-break:break-all}
   .pied strong{color:#fff;font-weight:600}
+  .pied .portee{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14)}
   @media print{ body{background:#fff;padding:0} .sheet{box-shadow:none;max-width:none} }
   @media (max-width:560px){ .manche{flex-direction:column;align-items:flex-start} }
 </style>
@@ -205,11 +206,16 @@ export function renderHtmlAttestation(bundle: Bundle): string {
     <footer class="pied">
       <div><strong>Ancrage</strong> — commit <code>${esc(repo.headSha)}</code></div>
       <div><strong>Empreinte</strong> — <code>${print}</code></div>
-      <div style="margin-top:8px">
-        Tous les chiffres ci-dessus se recalculent depuis ce commit.
-        Pour les réfuter : <code>recade verify cette-attestation.html &lt;dépôt&gt;</code>
-        — émise le ${esc(df.format(new Date(bundle.generatedAt)))}.
+      ${repo.remote ? `<div><strong>Dépôt</strong> — <code>${esc(repo.remote)}</code></div>` : ""}
+      <div class="portee">
+        <strong>Portée de la vérification.</strong>
+        Tous les chiffres ci-dessus se recalculent depuis le commit d'ancrage par
+        <strong>quiconque dispose de ce dépôt</strong> :
+        <code>recade verify cette-attestation.html &lt;dépôt&gt;</code>.
+        Si le dépôt est privé et que vous n'y avez pas accès, ces chiffres restent
+        <strong>déclaratifs</strong> — demandez leur confirmation à celui qui le détient.
       </div>
+      <div style="margin-top:8px;opacity:.75">Émise le ${esc(df.format(new Date(bundle.generatedAt)))}.</div>
     </footer>
 
   </main>

@@ -114,6 +114,22 @@ function isCountable(path: string): boolean {
   return LANGUAGES[extensionOf(path)] !== undefined;
 }
 
+/**
+ * Normalise l'URL du remote pour l'inscrire dans l'attestation.
+ *
+ * Une URL de remote peut porter un identifiant — `https://user:jeton@host/...`
+ * est une configuration courante. L'écrire tel quel dans un document destiné à
+ * un recruteur publierait le jeton. On ne garde que l'hôte et le chemin.
+ */
+export function sanitizeRemote(url: string): string | null {
+  const trimmed = url.trim();
+  if (trimmed.length === 0) return null;
+  return trimmed
+    .replace(/^[a-z+]+:\/\//i, "")
+    .replace(/^[^@/]*@/, "")
+    .replace(/\.git$/, "");
+}
+
 export async function readCommits(root: string, rev: string): Promise<Commit[]> {
   const lines = await gitLines(root, ["log", rev, "--format=%H%x00%aI%x00%an%x00%ae"]);
   const commits: Commit[] = [];
@@ -262,6 +278,10 @@ export async function scanRepository(options: ScanOptions): Promise<Bundle> {
   );
   const rank = otherGroups.filter((g) => g.commits > myGroupCommits).length + 1;
 
+  const remote = sanitizeRemote(
+    await git(root, ["config", "--get", "remote.origin.url"]).catch(() => ""),
+  );
+
   const volume = options.countLines === false ? [] : await countLinesAtRev(root, headSha);
   const stack = await detectStackAtRev(root, headSha, tracked);
 
@@ -277,6 +297,7 @@ export async function scanRepository(options: ScanOptions): Promise<Bundle> {
       totalCommits: commits.length,
       contributors: groups.length,
       trackedFiles: tracked.length,
+      remote,
     },
     contribution: {
       signatures: authors

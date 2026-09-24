@@ -18,6 +18,7 @@ import { scanRepository } from "./scan.js";
 import { bundleSchema } from "./schema.js";
 import { verifyBundle } from "./verify.js";
 import { renderHtmlAttestation } from "./html.js";
+import { htmlToPdf, NoBrowserError } from "./pdf.js";
 import { readFile } from "node:fs/promises";
 
 export const VERSION = "0.0.0";
@@ -76,12 +77,20 @@ program
   .option("--me <email...>", "adresses à compter comme vôtres, pour ce scan seulement")
   .option("--json", "écrit le bundle JSON sur la sortie standard")
   .option("-o, --out <fichier>", "écrit le bundle JSON dans un fichier")
-  .option("--html <fichier>", "écrit une attestation HTML autonome")
+  .option("--html <fichier>", "écrit une attestation HTML autonome (vérifiable)")
+  .option("--pdf <fichier>", "écrit une attestation PDF (pour joindre à un dossier)")
   .option("--no-lines", "ne compte pas les lignes : compteurs de commits seulement")
   .action(
     async (
       chemin: string,
-      opts: { me?: string[]; json?: boolean; out?: string; html?: string; lines: boolean },
+      opts: {
+        me?: string[];
+        json?: boolean;
+        out?: string;
+        html?: string;
+        pdf?: string;
+        lines: boolean;
+      },
     ) => {
       const root = await resolveRoot(chemin);
       const identity = await resolveIdentity(root, opts.me);
@@ -101,9 +110,28 @@ program
         process.stderr.write(`  ${pc.green("✓")} bundle écrit dans ${pc.bold(opts.out)}\n`);
       }
 
-      if (opts.html) {
-        await writeFile(resolve(opts.html), renderHtmlAttestation(parsed.data), "utf8");
-        process.stderr.write(`  ${pc.green("✓")} attestation écrite dans ${pc.bold(opts.html)}\n`);
+      if (opts.html || opts.pdf) {
+        const html = renderHtmlAttestation(parsed.data);
+
+        if (opts.html) {
+          await writeFile(resolve(opts.html), html, "utf8");
+          process.stderr.write(`  ${pc.green("✓")} attestation écrite dans ${pc.bold(opts.html)}\n`);
+        }
+
+        if (opts.pdf) {
+          try {
+            await htmlToPdf(html, resolve(opts.pdf));
+            process.stderr.write(`  ${pc.green("✓")} PDF écrit dans ${pc.bold(opts.pdf)}\n`);
+            if (!opts.html) {
+              process.stderr.write(
+                `  ${pc.yellow("!")} ${pc.dim("le PDF se lit mais ne se vérifie pas — ajoutez --html pour la version réfutable")}\n`,
+              );
+            }
+          } catch (error) {
+            if (error instanceof NoBrowserError) fail(error.message);
+            throw error;
+          }
+        }
       }
 
       if (opts.json) process.stdout.write(`${JSON.stringify(parsed.data, null, 2)}\n`);

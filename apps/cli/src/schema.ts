@@ -35,6 +35,12 @@ export const bundleSchema = z.object({
     /** Contributeurs après regroupement des signatures, pas signatures brutes. */
     contributors: z.number(),
     trackedFiles: z.number(),
+    /**
+     * Remote tel que configuré localement, **débarrassé de tout identifiant**.
+     * Sert au lecteur à savoir où vit le dépôt — donc qui peut vérifier.
+     * `null` quand le dépôt n'a pas de remote.
+     */
+    remote: z.string().nullable().optional(),
   }),
 
   contribution: z.object({

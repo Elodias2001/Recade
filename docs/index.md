@@ -4,13 +4,14 @@
 code. Un CLI local lit un dépôt Git — y compris privé, y compris sous NDA — et
 en produit une attestation de contribution **réfutable**.
 
-## Les trois fiches
+## Les fiches
 
 | Fiche | Pour qui |
 |---|---|
-| [Document technique](01-architecture.html) | Qui reprend le code : architecture, décisions et leurs raisons, contrat du bundle, limites connues |
-| [Manuel utilisateur](02-guide-utilisateur.html) | Le développeur qui atteste, le détenteur du dépôt qui vérifie, l'agence qui monte un dossier |
-| [Plan de tests](03-plan-de-tests.html) | Couverture automatique, recette manuelle, valeurs de référence, dette assumée |
+| [Guide de démarrage](01-demarrage.html) | Utiliser Récade en deux minutes, ou le développer en dix : prérequis, installation, boucle de dev, dépannage |
+| [Document technique](02-architecture.html) | Qui reprend le code : architecture, décisions et leurs raisons, contrat du bundle, limites connues |
+| [Manuel utilisateur](03-guide-utilisateur.html) | Le développeur qui atteste, le détenteur du dépôt qui vérifie, l'agence qui monte un dossier |
+| [Plan de tests](04-plan-de-tests.html) | Couverture automatique, recette manuelle, valeurs de référence, dette assumée |
 
 ## En trente secondes
 

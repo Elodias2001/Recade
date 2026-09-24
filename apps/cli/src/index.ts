@@ -27,7 +27,10 @@ import { renderHtmlAttestation, renderHtmlPortfolio } from "./html.js";
 import { htmlToPdf, NoBrowserError } from "./pdf.js";
 import { readFile } from "node:fs/promises";
 
-export const VERSION = "0.0.0";
+declare const __VERSION__: string;
+
+/** Injectée depuis package.json par tsup — voir tsup.config.ts. */
+export const VERSION = __VERSION__;
 
 function fail(message: string): never {
   process.stderr.write(`\n  ${pc.red("✗")} ${message}\n\n`);

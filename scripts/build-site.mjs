@@ -37,9 +37,13 @@ for (const route of ROUTES) {
 }
 
 // --- fichiers statiques : tout site/ sauf le code de construction ---
-const CODE = new Set(["config.mjs", "layout.mjs", "pages"]);
+// Tout ce qui n'est pas un fichier destiné au public. Un `.test.mjs` oublié
+// s'était retrouvé servi en production : on filtre par nature, pas par liste.
+const estCode = (nom) =>
+  nom === "pages" || nom.endsWith(".mjs") || nom.endsWith(".ts") || nom.endsWith(".map");
+
 for (const entree of await readdir(join(RACINE, "site"), { withFileTypes: true })) {
-  if (CODE.has(entree.name)) continue;
+  if (estCode(entree.name)) continue;
   await cp(join(RACINE, "site", entree.name), join(SORTIE, entree.name), { recursive: true });
 }
 

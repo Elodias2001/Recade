@@ -8,3 +8,6 @@ local-secrets/
 .env
 .env.*
 !.env.example
+
+# documentation générée — source dans docs/*.md
+docs/*.html

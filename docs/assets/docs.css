@@ -1,0 +1,82 @@
+/* Récade — documentation. Direction Fonte Hountondji. */
+:root{
+  --forge:#14120F; --forge-2:#2A241C; --laiton:#B8863B; --laiton-clair:#E0B65C;
+  --vert:#5E7A66; --ivoire:#F2EBDD; --ivoire-2:#DCD2BE; --cendre:#8A8073;
+  --papier:#FBF9F4; --encre:#1B1916; --doux:#4A4339; --filet:#E3DBCA;
+  --nav:248px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--papier);color:var(--encre);
+  font-family:"Avenir Next","Helvetica Neue",Segoe UI,system-ui,sans-serif;
+  font-size:15.5px;line-height:1.68;
+}
+code,pre,kbd{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace}
+
+/* ---------- barre latérale ---------- */
+.nav{
+  position:fixed;inset:0 auto 0 0;width:var(--nav);
+  background:var(--forge);color:#fff;padding:26px 22px;overflow-y:auto;
+}
+.nav .mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.nav .mark b{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.nav .bl{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;
+  color:var(--laiton);margin:2px 0 22px}
+.nav a{display:block;padding:7px 10px;margin:0 -10px;color:rgba(255,255,255,.72);
+  text-decoration:none;font-size:13.5px;border-left:2px solid transparent}
+.nav a:hover{color:#fff;background:rgba(255,255,255,.04)}
+.nav a.on{color:#fff;border-left-color:var(--laiton);background:rgba(184,134,59,.12)}
+.nav .sec{margin-top:22px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12);
+  font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--cendre)}
+
+/* ---------- colonne de lecture ---------- */
+.page{margin-left:var(--nav);padding:52px 48px 96px;max-width:900px}
+.page>h1:first-child{margin-top:0}
+
+h1{font-size:33px;font-weight:600;letter-spacing:-.8px;line-height:1.15;margin:0 0 10px}
+h2{font-size:21px;font-weight:600;letter-spacing:-.3px;margin:46px 0 14px;
+  padding-top:16px;border-top:1px solid var(--filet)}
+h3{font-size:16.5px;font-weight:600;margin:28px 0 8px}
+h4{font-size:14px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--cendre);margin:22px 0 6px}
+h2 a.anchor,h3 a.anchor{color:var(--ivoire-2);text-decoration:none;margin-left:8px;
+  font-weight:400;opacity:0}
+h2:hover a.anchor,h3:hover a.anchor{opacity:1}
+
+p{margin:0 0 14px}
+a{color:#8A5F1E;text-decoration:underline;text-underline-offset:2px}
+strong{font-weight:600}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin-bottom:5px}
+li::marker{color:var(--laiton)}
+
+code{background:#F0E9DA;border:1px solid var(--filet);padding:1px 5px;
+  border-radius:3px;font-size:.87em;color:#5A4A2C}
+pre{background:var(--forge);color:#EDE6D8;padding:16px 18px;overflow-x:auto;
+  border-left:3px solid var(--laiton);margin:0 0 18px;font-size:13px;line-height:1.6}
+pre code{background:none;border:0;padding:0;color:inherit;font-size:inherit}
+
+blockquote{margin:0 0 18px;padding:12px 18px;background:#FAF4E8;
+  border-left:3px solid var(--laiton);color:var(--doux)}
+blockquote p:last-child{margin-bottom:0}
+
+table{width:100%;border-collapse:collapse;margin:0 0 20px;font-size:14px}
+th{text-align:left;background:var(--forge);color:#fff;padding:9px 12px;
+  font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;font-weight:600}
+td{padding:9px 12px;border-bottom:1px solid var(--filet);vertical-align:top}
+tbody tr:nth-child(even){background:#F7F2E7}
+
+hr{border:0;border-top:1px solid var(--filet);margin:36px 0}
+
+.pied{margin-top:56px;padding-top:18px;border-top:1px solid var(--filet);
+  font-size:12.5px;color:var(--cendre)}
+
+@media (max-width:860px){
+  .nav{position:static;width:auto;inset:auto}
+  .page{margin-left:0;padding:32px 22px 70px}
+}
+@media print{
+  .nav{display:none} .page{margin:0;max-width:none;padding:0}
+  pre{background:#fff;color:#000;border:1px solid #ccc}
+}

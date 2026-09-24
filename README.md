@@ -29,14 +29,14 @@ pour qu'il rédige de jolies phrases. Inutilisable sur du travail confidentiel.
 ## Ce que fait Récade
 
 ```bash
-npx recade scan ~/Projets/mon-monorepo                    # au terminal
-npx recade scan ~/Projets/mon-monorepo --html att.html   # autonome, vérifiable
-npx recade scan ~/Projets/mon-monorepo --pdf att.pdf     # à joindre à un dossier
-npx recade verify att.html ~/Projets/mon-monorepo        # réfutation
+npx @elodias/recade scan ~/Projets/mon-monorepo                    # au terminal
+npx @elodias/recade scan ~/Projets/mon-monorepo --html att.html   # autonome, vérifiable
+npx @elodias/recade scan ~/Projets/mon-monorepo --pdf att.pdf     # à joindre à un dossier
+npx @elodias/recade verify att.html ~/Projets/mon-monorepo        # réfutation
 
 # plusieurs plateformes en un seul dossier
-npx recade scan ~/Projets/a ~/Projets/b ~/Projets/c --html dossier.html --pdf dossier.pdf
-npx recade verify dossier.html ~/Projets/a ~/Projets/b   # vérification partielle acceptée
+npx @elodias/recade scan ~/Projets/a ~/Projets/b ~/Projets/c --html dossier.html --pdf dossier.pdf
+npx @elodias/recade verify dossier.html ~/Projets/a ~/Projets/b   # vérification partielle acceptée
 ```
 
 Lit `.git` en local. N'ouvre jamais un fichier de code, n'envoie rien nulle part.

@@ -265,7 +265,7 @@ arrivé, treize d'un coup.
 pnpm type-check     # aucune erreur
 pnpm test           # 37/37
 pnpm build          # tsup sans avertissement
-pnpm docs           # documentation régénérée
+pnpm build:docs           # documentation régénérée
 ```
 
 Puis R2, R4, R6, R11 et R12 au minimum : ce sont ceux qui touchent aux

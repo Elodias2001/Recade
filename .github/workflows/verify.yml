@@ -1,0 +1,24 @@
+# Portail qualité, réutilisé par la CI de PR et par le déploiement.
+# Rien n'est construit ni déployé si ce workflow échoue.
+name: Verify
+
+on:
+  workflow_call: {}
+
+jobs:
+  verify:
+    name: Type-check · tests · build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm type-check
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm build:docs

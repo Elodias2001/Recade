@@ -1,0 +1,21 @@
+# Production : même VPS et même Traefik que Sabar, kpanlingan et GCWeek.
+# Le projet vit dans /opt/recade.
+services:
+  recade-site:
+    build: !reset null
+    image: ghcr.io/${GHCR_OWNER:-elodias2001}/recade-site:${IMAGE_TAG:-main}
+    networks: [gcw-public]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=gcw-public"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME:-recade}-site.rule=Host(`${SITE_HOST}`)"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME:-recade}-site.entrypoints=websecure"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME:-recade}-site.tls=true"
+      - "traefik.http.routers.${COMPOSE_PROJECT_NAME:-recade}-site.tls.certresolver=letsencrypt"
+      - "traefik.http.services.${COMPOSE_PROJECT_NAME:-recade}-site.loadbalancer.server.port=8080"
+
+networks:
+  # Réseau partagé avec le stack Traefik, créé une seule fois côté
+  # /opt/gcw/traefik/ et référencé en `external` par tous les projets.
+  gcw-public:
+    external: true

@@ -1,0 +1,111 @@
+# Chaque push sur main déclenche la chaîne complète :
+#   verify (portail qualité) → build image (GHCR) → deploy (VPS) → health.
+# Même VPS et même Traefik que Sabar, kpanlingan et GCWeek.
+# Le projet vit dans /opt/recade.
+name: Deploy (prod)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false # ne jamais couper un déploiement en cours
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  verify:
+    uses: ./.github/workflows/verify.yml
+
+  build-site:
+    name: Build & push site
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: prod
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: owner
+        run: echo "value=${OWNER,,}" >> "$GITHUB_OUTPUT"
+        env: { OWNER: '${{ github.repository_owner }}' }
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.owner.outputs.value }}/recade-site
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=main-,format=short
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=site
+          cache-to: type=gha,scope=site,mode=max
+
+  deploy:
+    name: Deploy → VPS
+    needs: build-site
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: prod
+    steps:
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key && chmod 600 ~/.ssh/deploy_key
+          for i in 1 2; do
+            ssh-keyscan -T 10 -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null && break
+            [ "$i" = 2 ] && echo "::warning::ssh-keyscan KO — on s'appuie sur StrictHostKeyChecking=no" || sleep 3
+          done
+          ssh-keygen -y -f ~/.ssh/deploy_key >/dev/null 2>&1 \
+            && echo "✓ clé SSH valide" \
+            || { echo "::error::VPS_SSH_PRIVATE_KEY invalide (format clé OpenSSH ?)"; exit 1; }
+
+      - name: Pull + restart on VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set +e
+          for i in 1 2 3; do
+            ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o ConnectTimeout=30 \
+              "$VPS_USER@$VPS_HOST" \
+              "cd /opt/recade \
+               && git fetch origin main && git reset --hard origin/main \
+               && docker compose -f docker-compose.yml -f docker-compose.prod.yml pull \
+               && docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans \
+               && docker image prune -f \
+               && docker compose -f docker-compose.yml -f docker-compose.prod.yml ps"
+            rc=$?
+            [ $rc -eq 0 ] && { echo "✓ deploy OK (essai $i)"; exit 0; }
+            echo "essai ssh $i échoué (exit $rc)"; [ $i -lt 3 ] && { echo "retry dans 20s…"; sleep 20; }
+          done
+          echo "::error::3 tentatives de deploy échouées — VPS injoignable ou fail2ban"; exit 1
+
+      - name: Health check
+        run: |
+          for i in $(seq 1 12); do
+            if curl -sf "https://${{ vars.SITE_HOST }}/health" >/dev/null 2>&1; then
+              echo "✓ site en ligne (essai $i)"; exit 0
+            fi
+            echo "attente du site… ($i/12)"; sleep 5
+          done
+          echo "::error::site muet sur https://${{ vars.SITE_HOST }}/health après 60s"; exit 1

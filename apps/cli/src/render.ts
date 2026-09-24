@@ -146,3 +146,64 @@ export function renderVerification(v: Verification): string {
 
   return out.join("\n");
 }
+
+export function renderPortfolioVerification(
+  results: ReadonlyArray<{
+    repositoryName: string;
+    verification: Verification | null;
+    unreachable?: string;
+  }>,
+): string {
+  const out: string[] = [""];
+  out.push(`  ${laiton("◆")}  ${pc.bold("RÉCADE")}   ${cendre("vérification d'un dossier")}`);
+  out.push("");
+  out.push(rule());
+
+  let confirmées = 0;
+  let réfutées = 0;
+  let injoignables = 0;
+
+  for (const r of results) {
+    if (!r.verification) {
+      injoignables += 1;
+      out.push(
+        `  ${cendre("○")} ${pc.bold(r.repositoryName.padEnd(24))}${cendre("non vérifiable ici — dépôt non fourni")}`,
+      );
+      continue;
+    }
+    const ok = r.verification.verdict === "confirmée";
+    if (ok) confirmées += 1;
+    else réfutées += 1;
+    const échecs = r.verification.checks.filter((c) => c.status !== "ok");
+    out.push(
+      `  ${ok ? pc.green("✓") : pc.red("✗")} ${pc.bold(r.repositoryName.padEnd(24))}` +
+        (ok
+          ? cendre(`${r.verification.checks.length} contrôles concordent`)
+          : pc.red(`${échecs.length} divergence${échecs.length > 1 ? "s" : ""}`)),
+    );
+    for (const c of échecs) {
+      out.push(`      ${cendre(`${c.label} :`)} ${pc.red(c.found)} ${cendre(`≠ ${c.claimed}`)}`);
+    }
+  }
+
+  out.push(rule());
+  out.push("");
+
+  if (réfutées > 0) {
+    out.push(`  ${pc.red("✗")} ${pc.bold("Dossier réfuté")} ${cendre(`— ${réfutées} attestation(s) ne tiennent pas.`)}`);
+  } else if (confirmées === 0) {
+    out.push(
+      `  ${cendre("○")} ${pc.bold("Rien n'a pu être vérifié")} ${cendre("— aucun des dépôts n'a été fourni.")}`,
+    );
+  } else {
+    out.push(
+      `  ${pc.green("✓")} ${pc.bold(`${confirmées} attestation(s) confirmée(s)`)}` +
+        (injoignables > 0
+          ? cendre(` — ${injoignables} non vérifiable(s) faute d'accès au dépôt.`)
+          : cendre(" — tout concorde.")),
+    );
+  }
+  out.push("");
+
+  return out.join("\n");
+}

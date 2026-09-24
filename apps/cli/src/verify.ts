@@ -180,3 +180,54 @@ async function objectExists(root: string, sha: string): Promise<boolean> {
     return false;
   }
 }
+
+export interface PortfolioVerification {
+  readonly repositoryName: string;
+  readonly verification: Verification | null;
+  /** Renseigné quand aucun dépôt fourni ne contient le commit d'ancrage. */
+  readonly unreachable?: string;
+}
+
+/**
+ * Vérifie un dossier contre les dépôts qu'on veut bien lui présenter.
+ *
+ * Chaque attestation retrouve **son** dépôt par son commit d'ancrage, pas par
+ * son nom : un dossier peut être renommé, un SHA non.
+ *
+ * Une attestation dont le dépôt n'est pas fourni n'est pas un échec — c'est le
+ * cas normal. Un recruteur n'a accès qu'à une partie des dépôts, parfois
+ * aucun. On distingue « réfuté » de « non vérifiable ici », parce que les
+ * confondre reviendrait à accuser à tort.
+ */
+export async function verifyPortfolio(
+  roots: readonly string[],
+  portfolio: { attestations: readonly Bundle[] },
+): Promise<PortfolioVerification[]> {
+  const results: PortfolioVerification[] = [];
+
+  for (const bundle of portfolio.attestations) {
+    let matched: string | null = null;
+    for (const root of roots) {
+      if (await objectExists(root, bundle.repository.headSha)) {
+        matched = root;
+        break;
+      }
+    }
+
+    if (!matched) {
+      results.push({
+        repositoryName: bundle.repository.name,
+        verification: null,
+        unreachable: bundle.repository.remote ?? "dépôt non fourni",
+      });
+      continue;
+    }
+
+    results.push({
+      repositoryName: bundle.repository.name,
+      verification: await verifyBundle(matched, bundle),
+    });
+  }
+
+  return results;
+}

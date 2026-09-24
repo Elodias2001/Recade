@@ -59,6 +59,41 @@ export const bundleSchema = z.object({
   stack: z.array(z.string()),
 });
 
+/**
+ * Un **dossier** : plusieurs attestations réunies, avec leurs cumuls.
+ *
+ * C'est la forme qu'attend un appel d'offres — « justifiez de deux plateformes
+ * d'envergure » ne se répond pas avec un dépôt à la fois — et c'est aussi ce
+ * qu'un poste sénior réclame.
+ *
+ * Les cumuls ne sont jamais recalculés à la lecture : ils sont recalculés à la
+ * vérification, depuis les attestations elles-mêmes, puis confrontés.
+ */
+export const portfolioSchema = z.object({
+  schemaVersion: z.literal(1),
+  kind: z.literal("portfolio"),
+  generatedAt: z.string(),
+
+  holder: z.object({
+    /** Union des signatures reconnues sur l'ensemble des dépôts. */
+    signatures: z.array(signature),
+  }),
+
+  totals: z.object({
+    repositories: z.number(),
+    /** Dépôts où le titulaire est premier contributeur. */
+    leading: z.number(),
+    commits: z.number(),
+    mergesIntegrated: z.number(),
+    firstCommitDate: z.string(),
+    lastCommitDate: z.string(),
+    volume: z.array(languageVolume),
+  }),
+
+  attestations: z.array(bundleSchema),
+});
+
+export type Portfolio = z.infer<typeof portfolioSchema>;
 export type Bundle = z.infer<typeof bundleSchema>;
 export type LanguageVolume = z.infer<typeof languageVolume>;
 export type Signature = z.infer<typeof signature>;

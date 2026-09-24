@@ -33,6 +33,10 @@ npx recade scan ~/Projets/mon-monorepo                    # au terminal
 npx recade scan ~/Projets/mon-monorepo --html att.html   # autonome, vérifiable
 npx recade scan ~/Projets/mon-monorepo --pdf att.pdf     # à joindre à un dossier
 npx recade verify att.html ~/Projets/mon-monorepo        # réfutation
+
+# plusieurs plateformes en un seul dossier
+npx recade scan ~/Projets/a ~/Projets/b ~/Projets/c --html dossier.html --pdf dossier.pdf
+npx recade verify dossier.html ~/Projets/a ~/Projets/b   # vérification partielle acceptée
 ```
 
 Lit `.git` en local. N'ouvre jamais un fichier de code, n'envoie rien nulle part.
@@ -79,6 +83,21 @@ vérifiable même si le projet a continué d'avancer.
 On ne passe pas de « crois-moi » à « prouvé », mais de « crois-moi » à
 **« réfutable sur demande »**.
 
+## Dossiers
+
+Un appel d'offres ne se répond pas un dépôt à la fois — « justifiez de deux
+plateformes d'envergure » non plus. Plusieurs chemins passés à `scan` produisent
+un **dossier** : une attestation par plateforme, plus les cumuls (plateformes,
+dépôts où l'on est premier contributeur, commits, fusions, volume, période).
+
+Aucun cumul n'est une estimation : ce sont des sommes de compteurs eux-mêmes
+réfutables. Si une attestation du dossier tombe, le cumul tombe avec elle.
+
+À la vérification, chaque attestation retrouve **son** dépôt par son commit
+d'ancrage, jamais par son nom — un dossier se renomme, un SHA non. Et une
+attestation dont le dépôt n'est pas fourni est signalée « non vérifiable ici »,
+jamais « réfutée » : confondre les deux reviendrait à accuser à tort.
+
 ## Identités
 
 Le vrai problème technique n'est pas de lire Git, c'est de savoir **qui est qui**.
@@ -122,6 +141,7 @@ Palette, emblème et principe structurel : [`brand/README.md`](brand/README.md).
 - ~~**v0.2** — `verify` recalcule aussi volume et stack~~ ✅
 - ~~**v0.3** — rendu HTML autonome, vérifiable tel quel~~ ✅
 - ~~**v0.4** — `--pdf` et mention explicite de la portée de vérification~~ ✅
-- **v1** — plusieurs dépôts, mapping face à une offre d'emploi
+- ~~**v1** — plusieurs dépôts en un dossier, avec cumuls~~ ✅
+- **v1.1** — mapping face à une offre d'emploi
 - **v1.1** — contresignature : le détenteur du dépôt confirme, et c'est ça que lit le recruteur
 - **plus tard** — `recade.dev`, le service qui héberge les attestations en ligne

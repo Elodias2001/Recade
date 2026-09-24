@@ -58,12 +58,14 @@ function shell({ title, nav, body }) {
   <div class="mark">${EMBLEME}<b>Récade</b></div>
   <div class="bl">Documentation</div>
   ${nav}
-  <div class="sec">Dépôt</div>
-  <a href="https://github.com/Elodias2001/Recade">github.com/Elodias2001/Recade</a>
+  <div class="sec">Liens</div>
+  <a href="/">Accueil du site</a>
+  <a href="/a-propos.html">À propos</a>
+  <a href="https://github.com/Elodias2001/Recade">GitHub</a>
 </nav>
 <main class="page">
 ${body}
-<div class="pied">Récade — documentation générée depuis <code>docs/*.md</code>. Ne pas éditer le HTML.</div>
+<div class="pied">Récade — MIT © Elodias ADIMOU · Conçu &amp; développé par <a href="/a-propos.html">Elodias ADIMOU</a>.</div>
 </main>
 </body>
 </html>

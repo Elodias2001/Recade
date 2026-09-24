@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>À propos — Récade</title>
+<meta name="description" content="La personne derrière Récade : Elodias ADIMOU, développeur fullstack à Cotonou.">
+<meta property="og:title" content="À propos — Récade">
+<meta property="og:description" content="La personne derrière Récade : un développeur, à Cotonou.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+  :root{
+    --forge:#14120F;--forge-2:#1F1B16;--laiton:#B8863B;--laiton-clair:#E0B65C;
+    --ivoire:#F2EBDD;--ivoire-2:#DCD2BE;--cendre:#8A8073;
+    --papier:#FBF9F4;--doux:#4A4339;--filet:#E3DBCA;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--papier);color:var(--forge);
+    font-family:"Avenir Next","Helvetica Neue",Segoe UI,system-ui,sans-serif;
+    font-size:16px;line-height:1.68;-webkit-font-smoothing:antialiased}
+  a{color:#8A5F1E}
+  .wrap{max-width:900px;margin:0 auto;padding:0 24px}
+
+  .manche{background:var(--forge);color:#fff}
+  .bar{display:flex;align-items:center;justify-content:space-between;
+    padding:20px 0;border-bottom:1px solid rgba(255,255,255,.1)}
+  .brand{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:600;
+    color:#fff;text-decoration:none}
+  .bar nav{display:flex;gap:22px}
+  .bar nav a{color:rgba(255,255,255,.72);text-decoration:none;font-size:14px}
+  .bar nav a:hover{color:#fff}
+
+  .hero{padding:56px 0 60px}
+  .kicker{font-size:11px;font-weight:600;letter-spacing:2.6px;
+    text-transform:uppercase;color:var(--laiton);margin-bottom:16px}
+  .hero h1{margin:0;font-size:44px;font-weight:600;letter-spacing:-1.2px;line-height:1.08}
+  .hero p{font-size:17.5px;color:rgba(255,255,255,.75);margin:18px 0 0;max-width:34em}
+
+  .colonnes{display:grid;grid-template-columns:320px 1fr;gap:48px;
+    align-items:start;padding:62px 0}
+  .portrait{position:relative}
+  .portrait img{width:100%;display:block;border:1px solid var(--filet)}
+  .portrait figcaption{margin-top:14px;font-size:13px;color:var(--cendre);
+    border-left:2px solid var(--laiton);padding-left:12px;line-height:1.5}
+  .portrait figcaption b{color:var(--forge);font-weight:600;display:block}
+
+  h2{font-size:27px;font-weight:600;letter-spacing:-.6px;margin:0 0 16px;line-height:1.25}
+  h3{font-size:13px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;
+    color:var(--cendre);margin:38px 0 12px}
+  p{margin:0 0 16px;color:var(--doux);max-width:36em}
+  p b{color:var(--forge);font-weight:600}
+
+  .contacts{display:flex;gap:12px;flex-wrap:wrap;margin-top:34px;
+    padding-top:26px;border-top:1px solid var(--filet)}
+  .contacts a{display:inline-flex;align-items:center;gap:9px;
+    padding:11px 18px;border:1px solid var(--ivoire-2);background:#fff;
+    color:var(--forge);text-decoration:none;font-size:14.5px;font-weight:600}
+  .contacts a:hover{border-color:var(--laiton);background:#FAF4E8}
+  .contacts svg{flex:0 0 auto}
+
+  footer{background:var(--forge-2);color:rgba(255,255,255,.62);padding:38px 0;font-size:14px}
+  footer a{color:var(--laiton-clair)}
+  footer .liens{display:flex;gap:24px;flex-wrap:wrap;margin-bottom:18px}
+
+  @media (max-width:760px){
+    .colonnes{grid-template-columns:1fr;gap:32px;padding:42px 0}
+    .portrait{max-width:280px}
+    .hero h1{font-size:33px} .bar nav{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="manche">
+  <div class="wrap">
+    <div class="bar">
+      <a class="brand" href="/">
+        <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
+          <circle cx="32" cy="32" r="30" fill="none" stroke="#B8863B" stroke-width="2"/>
+          <path d="M32 12.5 L43.8 24.3 L43.8 39.7 L32 51.5 L20.2 39.7 L20.2 24.3 Z" fill="none" stroke="#F2EBDD" stroke-width="2.2"/>
+          <path d="M32 20.9 L38.3 27.1 L38.3 36.9 L32 43.1 L25.7 36.9 L25.7 27.1 Z" fill="#B8863B"/>
+        </svg>
+        Récade
+      </a>
+      <nav>
+        <a href="/docs/">Documentation</a>
+        <a href="/docs/01-demarrage.html">Démarrer</a>
+        <a href="https://github.com/Elodias2001/Recade">GitHub</a>
+        <a href="https://www.npmjs.com/package/recade">npm</a>
+      </nav>
+    </div>
+
+    <div class="hero">
+      <div class="kicker">À propos</div>
+      <h1>La personne derrière Récade</h1>
+      <p>Pas une équipe : un développeur, à Cotonou, qui avait besoin de prouver
+         ce qu'il avait construit.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="colonnes">
+
+    <figure class="portrait" style="margin:0">
+      <picture>
+        <source srcset="img/elodias.avif" type="image/avif">
+        <img src="img/elodias.jpg" alt="Portrait d'Elodias ADIMOU" width="900" height="1200" loading="eager">
+      </picture>
+      <figcaption>
+        <b>Elodias ADIMOU</b>
+        Développeur fullstack · Cotonou, Bénin
+      </figcaption>
+    </figure>
+
+    <div>
+      <h2>Salut, moi c'est Elodias.</h2>
+      <p>
+        Je suis développeur fullstack, basé à <b>Cotonou</b>. Le jour, je construis
+        des applications web pour des entreprises ici et à l'étranger ; le reste
+        du temps, je fais des outils comme celui-ci.
+      </p>
+
+      <h3>Pourquoi Récade</h3>
+      <p>
+        En préparant une candidature, j'ai voulu montrer ce que j'avais réellement
+        livré. Mes meilleurs projets sont dans des <b>dépôts privés</b> — un client
+        bancaire, une plateforme électorale. Je ne pouvais rien montrer, et tout
+        ce que j'écrivais sur mon CV restait invérifiable.
+      </p>
+      <p>
+        Les outils existants demandent l'accès à votre compte GitHub et envoient
+        votre code à un modèle de langage. Impossible sous NDA. Alors j'ai écrit
+        Récade : il lit <b>.git</b>, il compte, et il ne fait sortir que des
+        nombres — jamais une ligne de code.
+      </p>
+
+      <h3>Comment je travaille</h3>
+      <p>
+        Récade, je le conçois et je le fais tourner de bout en bout — du code à
+        l'hébergement. Le code est <b>ouvert</b>, sous licence MIT : un outil qui
+        demande votre confiance et qu'on ne peut pas lire n'en mérite aucune.
+      </p>
+      <p>
+        Quand vous écrivez, c'est moi qui réponds. Et chaque chiffre qui cloche,
+        je le prends personnellement — c'est un outil de preuve.
+      </p>
+
+      <div class="contacts">
+        <a href="https://wa.me/22967770115" target="_blank" rel="noopener">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.7 15l-1.3 4.8 4.9-1.3A10 10 0 1 0 12 2Zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .1-1.7-.1a12 12 0 0 1-5.7-5 6.5 6.5 0 0 1-1.4-3.4c0-1 .5-1.5.7-1.7.2-.2.5-.3.6-.3h.5c.2 0 .4 0 .6.4l.8 1.9c.1.2 0 .4-.1.5l-.3.4-.3.3c-.1.1-.2.3 0 .5a8 8 0 0 0 3.7 3.2c.2.1.4.1.5 0l.8-1c.2-.2.3-.1.5-.1l1.8.9c.2.1.4.2.4.3v.9Z"/></svg>
+          WhatsApp
+        </a>
+        <a href="mailto:nounagnonadimou@gmail.com">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="4.5" width="19" height="15" rx="2"/><path d="m3 6 9 6 9-6"/></svg>
+          E-mail
+        </a>
+        <a href="https://elodias-adimou.netlify.app/" target="_blank" rel="noopener">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.5 2.6 2.5 16.4 0 19M12 2.5c-2.5 2.6-2.5 16.4 0 19"/></svg>
+          Mon portfolio
+        </a>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="liens">
+      <a href="/">Accueil</a>
+      <a href="/docs/">Documentation</a>
+      <a href="https://github.com/Elodias2001/Recade">GitHub</a>
+      <a href="https://www.npmjs.com/package/recade">npm</a>
+    </div>
+    <p style="margin:0;color:rgba(255,255,255,.62)">
+      MIT © Elodias ADIMOU — Conçu &amp; développé par
+      <a href="/a-propos.html">Elodias ADIMOU</a>.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

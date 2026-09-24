@@ -16,11 +16,11 @@ en produit une attestation de contribution **réfutable**.
 ## En trente secondes
 
 ```bash
-npx recade whoami ~/Projets/mon-depot          # qui suis-je dans ce dépôt ?
-npx recade whoami --add moi@exemple.io         # déclarer mes signatures
-npx recade scan ~/Projets/mon-depot            # attester
-npx recade scan ~/a ~/b ~/c --pdf dossier.pdf  # un dossier de plusieurs plateformes
-npx recade verify attestation.html ~/Projets/mon-depot
+npx @elodias/recade whoami ~/Projets/mon-depot          # qui suis-je dans ce dépôt ?
+npx @elodias/recade whoami --add moi@exemple.io         # déclarer mes signatures
+npx @elodias/recade scan ~/Projets/mon-depot            # attester
+npx @elodias/recade scan ~/a ~/b ~/c --pdf dossier.pdf  # un dossier de plusieurs plateformes
+npx @elodias/recade verify attestation.html ~/Projets/mon-depot
 ```
 
 ## Le principe

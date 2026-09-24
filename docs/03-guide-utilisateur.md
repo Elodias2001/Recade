@@ -12,8 +12,8 @@ besoins. Allez directement au vôtre.
 ## Installation
 
 ```bash
-npx recade --help          # sans rien installer
-npm install -g recade      # ou en permanence
+npx @elodias/recade --help          # sans rien installer
+npm install -g @elodias/recade      # ou en permanence
 ```
 
 Prérequis : **Node 20+** et **Git**. Pour la sortie PDF, un navigateur Chromium
@@ -115,7 +115,7 @@ recade scan ~/Projets/mon-depot --html attestation.html --pdf attestation.pdf
 Vous avez reçu une attestation et vous détenez le dépôt. **Dix secondes.**
 
 ```bash
-npx recade verify attestation.html ~/depots/le-projet
+npx @elodias/recade verify attestation.html ~/depots/le-projet
 ```
 
 ```

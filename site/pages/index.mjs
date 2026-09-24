@@ -55,7 +55,7 @@ const enTete = `
           et n'en fait sortir que des nombres.
         </p>
         <div class="cta">
-          <span class="cmd">npx recade scan ~/mon-depot</span>
+          <span class="cmd">npx @elodias/recade scan ~/mon-depot</span>
           <a class="btn" href="/docs/01-demarrage.html">Démarrer</a>
           <a class="btn ghost" href="${site.depot}" rel="noopener noreferrer">Voir le code</a>
         </div>
@@ -91,7 +91,7 @@ const corps = `<div class="wrap">
   <section>
     <h2>Ce que fait Récade</h2>
     <h3>Il lit <code>.git</code>, il compte, il n'écrit que des nombres.</h3>
-<pre><span class="d">$</span> <span class="w">npx recade scan ~/Projets/inventaire</span>
+<pre><span class="d">$</span> <span class="w">npx @elodias/recade scan ~/Projets/inventaire</span>
 
   <span class="g">◆</span>  <span class="w">RÉCADE</span>   <span class="d">attestation de contribution</span>
      <span class="w">inventaire</span> <span class="d">· scan local, aucun code transmis</span>
@@ -115,7 +115,7 @@ const corps = `<div class="wrap">
       L'attestation embarque le commit d'ancrage, celui du premier commit et celui
       de chaque fusion revendiquée. Quiconque dispose du dépôt recalcule.
     </p>
-<pre><span class="d">$</span> <span class="w">npx recade verify attestation.html ~/Projets/inventaire</span>
+<pre><span class="d">$</span> <span class="w">npx @elodias/recade verify attestation.html ~/Projets/inventaire</span>
 
   <span class="v">✓</span> Premier commit        457c7ce8ae
   <span class="v">✓</span> Commits signés        1025
@@ -159,7 +159,7 @@ const corps = `<div class="wrap">
       « Justifier de la conception et de la mise en production d'au moins deux
       plateformes d'envergure » ne se répond pas un dépôt à la fois.
     </p>
-<pre><span class="d">$</span> <span class="w">npx recade scan ~/alpha ~/beta ~/gamma --pdf dossier.pdf</span>
+<pre><span class="d">$</span> <span class="w">npx @elodias/recade scan ~/alpha ~/beta ~/gamma --pdf dossier.pdf</span>
 
   <span class="w">3</span> plateformes   <span class="w">2</span> en tête   <span class="w">1 683</span> commits   <span class="w">230</span> fusions</pre>
     <p class="lead" style="margin-top:22px">

@@ -11,7 +11,7 @@ export const site = {
   url: "https://recade.sabar.app",
   accroche: "Atteste ce que tu as construit, sans faire sortir une ligne de code.",
   depot: "https://github.com/Elodias2001/Recade",
-  npm: "https://www.npmjs.com/package/recade",
+  npm: "https://www.npmjs.com/package/@elodias/recade",
   licence: "MIT",
 };
 

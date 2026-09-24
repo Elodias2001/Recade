@@ -22,13 +22,13 @@ backend : c'est un invariant du produit, pas un manque.
 
 ```bash
 # 1. qui suis-je dans ce dépôt ?
-npx recade whoami ~/Projets/mon-depot
+npx @elodias/recade whoami ~/Projets/mon-depot
 
 # 2. déclarer mes signatures, une fois pour toutes
-npx recade whoami --add moi@exemple.io
+npx @elodias/recade whoami --add moi@exemple.io
 
 # 3. attester
-npx recade scan ~/Projets/mon-depot
+npx @elodias/recade scan ~/Projets/mon-depot
 ```
 
 Si vous ne deviez retenir qu'une chose : **l'étape 2 n'est pas facultative.**
@@ -38,7 +38,7 @@ la machine et l'année. Sans elle, Récade compte une fraction de votre travail.
 ## Produire un document
 
 ```bash
-npx recade scan ~/Projets/mon-depot --html attestation.html --pdf attestation.pdf
+npx @elodias/recade scan ~/Projets/mon-depot --html attestation.html --pdf attestation.pdf
 ```
 
 Le **PDF** se joint à un dossier. Le **HTML** se vérifie — c'est lui qui porte

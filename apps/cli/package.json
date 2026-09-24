@@ -1,5 +1,5 @@
 {
-  "name": "recade",
+  "name": "@elodias/recade",
   "version": "0.1.0",
   "description": "Atteste ce que tu as construit — sans faire sortir une ligne de code.",
   "license": "MIT",
@@ -50,5 +50,8 @@
   "homepage": "https://recade.sabar.app",
   "bugs": {
     "url": "https://github.com/Elodias2001/Recade/issues"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

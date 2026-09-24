@@ -7,9 +7,9 @@ en attestation de contribution **vérifiable**, sans qu'aucun contenu ne quitte
 la machine.
 
 ```bash
-npx recade whoami ~/Projets/mon-depot        # quelles signatures sont les miennes ?
-npx recade whoami --add moi@exemple.io       # les déclarer, une fois pour toutes
-npx recade scan ~/Projets/mon-depot          # attester
+npx @elodias/recade whoami ~/Projets/mon-depot        # quelles signatures sont les miennes ?
+npx @elodias/recade whoami --add moi@exemple.io       # les déclarer, une fois pour toutes
+npx @elodias/recade scan ~/Projets/mon-depot          # attester
 ```
 
 ```
@@ -41,8 +41,8 @@ L'attestation embarque le commit d'ancrage, celui du premier commit et celui de
 chaque fusion revendiquée :
 
 ```bash
-npx recade scan ~/Projets/mon-depot --html attestation.html --pdf attestation.pdf
-npx recade verify attestation.html ~/Projets/mon-depot
+npx @elodias/recade scan ~/Projets/mon-depot --html attestation.html --pdf attestation.pdf
+npx @elodias/recade verify attestation.html ~/Projets/mon-depot
 ```
 
 Quiconque dispose du dépôt recalcule et retombe sur les mêmes chiffres, ou pas.
@@ -58,8 +58,8 @@ Plusieurs chemins produisent un dossier avec les cumuls — la forme qu'exigent
 les appels d'offres et les postes séniors.
 
 ```bash
-npx recade scan ~/a ~/b ~/c --html dossier.html --pdf dossier.pdf
-npx recade verify dossier.html ~/a          # vérification partielle acceptée
+npx @elodias/recade scan ~/a ~/b ~/c --html dossier.html --pdf dossier.pdf
+npx @elodias/recade verify dossier.html ~/a          # vérification partielle acceptée
 ```
 
 ## Ce qui ne sort jamais

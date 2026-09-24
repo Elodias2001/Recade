@@ -1,125 +1,67 @@
-<!doctype html>
-<html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Récade — atteste ce que tu as construit</title>
-<meta name="description" content="CLI local qui transforme un dépôt Git privé en attestation de contribution vérifiable. Aucun code ne quitte votre machine.">
-<meta property="og:title" content="Récade — atteste ce que tu as construit">
-<meta property="og:description" content="Un CV affirme. Récade compte, puis laisse réfuter.">
-<meta property="og:type" content="website">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<style>
-  :root{
-    --forge:#14120F;--forge-2:#1F1B16;--laiton:#B8863B;--laiton-clair:#E0B65C;
-    --vert:#5E7A66;--ivoire:#F2EBDD;--ivoire-2:#DCD2BE;--cendre:#8A8073;
-    --papier:#FBF9F4;--doux:#4A4339;--filet:#E3DBCA;
-  }
-  *{box-sizing:border-box}
-  html{scroll-behavior:smooth}
-  body{margin:0;background:var(--papier);color:var(--forge);
-    font-family:"Avenir Next","Helvetica Neue",Segoe UI,system-ui,sans-serif;
-    font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased}
-  code,pre{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace}
-  a{color:#8A5F1E}
-  .wrap{max-width:900px;margin:0 auto;padding:0 24px}
+import { site } from "../config.mjs";
+import { coquille } from "../layout.mjs";
 
-  /* ---------- manche : le bandeau qui porte ---------- */
-  .manche{background:var(--forge);color:#fff;padding:0 0 64px}
-  .bar{display:flex;align-items:center;justify-content:space-between;
-    padding:20px 0;border-bottom:1px solid rgba(255,255,255,.1)}
-  .brand{display:flex;align-items:center;gap:11px;font-size:18px;font-weight:600;color:#fff;text-decoration:none}
-  .bar nav{display:flex;gap:22px}
-  .bar nav a{color:rgba(255,255,255,.72);text-decoration:none;font-size:14px}
-  .bar nav a:hover{color:#fff}
-
-  .hero{padding-top:64px;display:flex;gap:48px;align-items:center}
-  .hero h1{margin:0;font-size:54px;font-weight:600;letter-spacing:-1.6px;line-height:1.02}
-  .hero .kicker{font-size:11px;font-weight:600;letter-spacing:2.6px;
-    text-transform:uppercase;color:var(--laiton);margin-bottom:16px}
-  .hero p{font-size:19px;line-height:1.55;color:rgba(255,255,255,.78);margin:20px 0 0;max-width:30em}
+const style = `
+  .manche{padding-bottom:60px}
+  .hero{padding-top:56px;display:flex;gap:48px;align-items:center}
+  .hero h1{font-size:52px;letter-spacing:-1.6px;line-height:1.04}
+  .hero p{font-size:19px;line-height:1.55;color:rgba(255,255,255,.86);margin:20px 0 0;max-width:30em}
   .hero p b{color:#fff;font-weight:600}
-  .hero .seal{flex:0 0 auto}
   .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:32px;align-items:center}
-  .cmd{background:rgba(255,255,255,.07);border:1px solid rgba(184,134,59,.4);
-    padding:11px 16px;font-size:14px;color:var(--laiton-clair)}
-  .btn{display:inline-block;padding:11px 20px;background:var(--laiton);color:#14120F;
-    text-decoration:none;font-size:14px;font-weight:600}
-  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.26);color:#fff}
+  .cmd{background:rgba(255,255,255,.08);border:1px solid rgba(184,134,59,.5);
+    padding:12px 16px;font-size:14px;color:var(--laiton-clair);
+    font-family:ui-monospace,Menlo,monospace}
+  .btn{display:inline-flex;align-items:center;padding:12px 20px;background:var(--laiton);
+    color:#14120F;text-decoration:none;font-size:14.5px;font-weight:600;min-height:44px}
+  .btn:hover,.btn:focus-visible{background:var(--laiton-clair)}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.4);color:#fff}
+  .btn.ghost:hover,.btn.ghost:focus-visible{background:rgba(255,255,255,.1)}
 
-  /* ---------- lame : ce qui atteste ---------- */
-  section{padding:64px 0;border-bottom:1px solid var(--filet)}
+  section{padding:60px 0;border-bottom:1px solid var(--filet)}
   section:last-of-type{border-bottom:0}
   h2{font-size:13px;font-weight:700;letter-spacing:1.9px;text-transform:uppercase;
     color:var(--cendre);margin:0 0 22px}
   h3{font-size:27px;font-weight:600;letter-spacing:-.6px;margin:0 0 16px;line-height:1.25}
   p.lead{font-size:17px;color:var(--doux);max-width:36em;margin:0 0 18px}
   p.lead b{color:var(--forge);font-weight:600}
-
   pre{background:var(--forge);color:#EDE6D8;padding:20px 22px;overflow-x:auto;
     border-left:3px solid var(--laiton);font-size:13px;line-height:1.7;margin:22px 0 0}
-  pre .g{color:var(--laiton)} pre .d{color:#8A8073} pre .v{color:#8FBF9B}
-  pre .r{color:#D98B7F} pre .w{color:#fff;font-weight:600}
-
-  .duo{display:grid;grid-template-columns:1fr 1fr;gap:34px}
+  pre .g{color:var(--laiton-clair)} pre .d{color:#A79B87} pre .v{color:#9CCBA8}
+  pre .r{color:#E5A196} pre .w{color:#fff;font-weight:600}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:32px}
   .carte{border:1px solid var(--filet);border-top:2px solid var(--laiton);padding:22px}
   .carte h4{margin:0 0 8px;font-size:17px;font-weight:600}
   .carte p{margin:0;font-size:15px;color:var(--doux)}
-
   .aveu{background:#FAF4E8;border-left:3px solid var(--laiton);padding:18px 22px;
     font-size:15.5px;color:var(--doux);margin:22px 0 0}
   .aveu b{color:var(--forge)}
-
-  footer{background:var(--forge-2);color:rgba(255,255,255,.62);padding:44px 0;font-size:14px}
-  footer a{color:var(--laiton-clair)}
-  footer .liens{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:22px}
-  footer .nom{max-width:44em;line-height:1.7}
-
+  .nom-bloc{background:var(--forge);color:rgba(255,255,255,.84);padding:26px 28px;
+    border-radius:4px;margin-top:22px;line-height:1.7}
+  .nom-bloc b{color:#fff}
   @media (max-width:760px){
-    .hero{flex-direction:column;align-items:flex-start;gap:28px;padding-top:44px}
-    .hero h1{font-size:38px} .duo{grid-template-columns:1fr}
-    .bar nav{display:none}
+    .hero{flex-direction:column;align-items:flex-start;gap:28px;padding-top:40px}
+    .hero h1{font-size:34px} .duo{grid-template-columns:1fr} section{padding:44px 0}
   }
-</style>
-</head>
-<body>
+`;
 
-<header class="manche">
-  <div class="wrap">
-    <div class="bar">
-      <a class="brand" href="/">
-        <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
-          <circle cx="32" cy="32" r="30" fill="none" stroke="#B8863B" stroke-width="2"/>
-          <path d="M32 12.5 L43.8 24.3 L43.8 39.7 L32 51.5 L20.2 39.7 L20.2 24.3 Z" fill="none" stroke="#F2EBDD" stroke-width="2.2"/>
-          <path d="M32 20.9 L38.3 27.1 L38.3 36.9 L32 43.1 L25.7 36.9 L25.7 27.1 Z" fill="#B8863B"/>
-        </svg>
-        Récade
-      </a>
-      <nav>
-        <a href="/docs/">Documentation</a>
-        <a href="/docs/01-demarrage.html">Démarrer</a>
-        <a href="https://github.com/Elodias2001/Recade">GitHub</a>
-        <a href="https://www.npmjs.com/package/recade">npm</a>
-      </nav>
-    </div>
-
+const enTete = `
     <div class="hero">
       <div>
-        <div class="kicker">Montre la récade</div>
+        <p class="kicker">Montre la récade</p>
         <h1>Atteste ce que<br>tu as construit.</h1>
         <p>
           Un CV affirme. <b>Récade compte, puis laisse réfuter.</b>
-          Un CLI local lit ton dépôt Git — y compris privé, y compris sous NDA —
+          Un CLI local lit ton dépôt Git, y compris privé, y compris sous NDA,
           et n'en fait sortir que des nombres.
         </p>
         <div class="cta">
           <span class="cmd">npx recade scan ~/mon-depot</span>
           <a class="btn" href="/docs/01-demarrage.html">Démarrer</a>
-          <a class="btn ghost" href="https://github.com/Elodias2001/Recade">Voir le code</a>
+          <a class="btn ghost" href="${site.depot}" rel="noopener noreferrer">Voir le code</a>
         </div>
       </div>
-      <div class="seal">
-        <svg viewBox="0 0 64 64" width="150" height="150" aria-hidden="true">
+      <div>
+        <svg viewBox="0 0 64 64" width="150" height="150" aria-hidden="true" focusable="false">
           <circle cx="32" cy="32" r="30" fill="none" stroke="#B8863B" stroke-width="1.6"/>
           <circle cx="32" cy="32" r="24" fill="none" stroke="#B8863B" stroke-width="0.8" opacity=".5"/>
           <path d="M32 12.5 L43.8 24.3 L43.8 39.7 L32 51.5 L20.2 39.7 L20.2 24.3 Z" fill="none" stroke="#F2EBDD" stroke-width="1.8"/>
@@ -127,18 +69,14 @@
           <circle cx="32" cy="32" r="3.6" fill="#14120F"/>
         </svg>
       </div>
-    </div>
-  </div>
-</header>
+    </div>`;
 
-<main class="wrap">
+const corps = `<div class="wrap">
 
   <section>
     <h2>Le problème</h2>
     <h3>« Premier contributeur d'une équipe de dix. »</h3>
-    <p class="lead">
-      Personne ne peut le vérifier. N'importe qui peut écrire la même phrase.
-    </p>
+    <p class="lead">Personne ne peut le vérifier. N'importe qui peut écrire la même phrase.</p>
     <p class="lead">
       Et le meilleur travail d'un développeur sénior est justement celui qu'il ne
       peut pas montrer : dépôts privés, clients bancaires, plateformes d'État.
@@ -185,11 +123,11 @@
   <span class="v">✓</span> Fusions revendiquées  185 réelles
   <span class="v">✓</span> Lignes TypeScript     142228
 
-  <span class="v">✓ Attestation confirmée</span> <span class="d">— tous les compteurs se recalculent à l'identique.</span></pre>
+  <span class="v">✓ Attestation confirmée</span> <span class="d">: tous les compteurs se recalculent à l'identique.</span></pre>
     <p class="lead" style="margin-top:22px">Gonflez un chiffre, et&nbsp;:</p>
 <pre>  <span class="r">✗</span> Commits signés        <span class="r">1025</span>   <span class="d">attesté : 1800</span>
 
-  <span class="r">✗ Attestation réfutée</span> <span class="d">— au moins un compteur ne tient pas.</span></pre>
+  <span class="r">✗ Attestation réfutée</span> <span class="d">: au moins un compteur ne tient pas.</span></pre>
   </section>
 
   <section>
@@ -201,7 +139,7 @@
       </div>
       <div class="carte">
         <h4>Aucun contenu transmis</h4>
-        <p>Les lignes sont comptées <i>dans</i> l'arbre du commit par Git lui-même. Votre code n'est ni lu ni envoyé — seulement dénombré.</p>
+        <p>Les lignes sont comptées dans l'arbre du commit par Git lui-même. Votre code n'est ni lu ni envoyé, seulement dénombré.</p>
       </div>
       <div class="carte">
         <h4>Ouvert et auditable</h4>
@@ -234,9 +172,9 @@
     <h2>Ce que Récade ne prouve pas</h2>
     <div class="aveu">
       <b>Un dépôt privé reste privé.</b> Un recruteur qui n'y a pas accès ne
-      recalcule rien — l'attestation l'écrit noir sur blanc plutôt que de le taire.
+      recalcule rien, et l'attestation l'écrit noir sur blanc plutôt que de le taire.
       La vérification s'adresse à celui qui détient le dépôt : l'ancien employeur,
-      le client. <b>Récade ne remplace pas la prise de références — il la rend
+      le client. <b>Récade ne remplace pas la prise de références, il la rend
       chiffrée.</b>
     </div>
     <div class="aveu">
@@ -245,30 +183,25 @@
     </div>
   </section>
 
-</main>
-
-<footer>
-  <div class="wrap">
-    <div class="liens">
-      <a href="/docs/">Documentation</a>
-      <a href="/docs/01-demarrage.html">Guide de démarrage</a>
-      <a href="/a-propos.html">À propos</a>
-      <a href="https://github.com/Elodias2001/Recade">GitHub</a>
-      <a href="https://www.npmjs.com/package/recade">npm</a>
+  <section>
+    <h2>Le nom</h2>
+    <div class="nom-bloc">
+      La <b>récade</b>, en fon <i>makpo</i>, est le sceptre du roi d'Abomey, remis
+      au messager pour garantir à son destinataire l'authenticité du message royal.
+      La présenter équivalait juridiquement à la présence du roi : une extension
+      portable de la souveraineté. C'est exactement ce qu'est une attestation, un
+      petit objet qu'on remet, et qui parle à votre place.
     </div>
-    <p class="nom">
-      La <b style="color:#fff">récade</b> — en fon <i>makpo</i> — est le sceptre du roi
-      d'Abomey, remis au messager pour garantir à son destinataire l'authenticité
-      du message royal. La présenter équivalait juridiquement à la présence du roi :
-      une extension portable de la souveraineté. C'est exactement ce qu'est une
-      attestation — un petit objet qu'on remet, et qui parle à votre place.
-    </p>
-    <p style="margin-top:22px;opacity:.75">
-      MIT © Elodias ADIMOU — Conçu &amp; développé par
-      <a href="/a-propos.html">Elodias ADIMOU</a>.
-    </p>
-  </div>
-</footer>
+  </section>
 
-</body>
-</html>
+</div>`;
+
+export default coquille({
+  titre: "Récade, atteste ce que tu as construit",
+  description:
+    "CLI local qui transforme un dépôt Git privé en attestation de contribution vérifiable. Aucun code ne quitte votre machine.",
+  chemin: "/",
+  enTete,
+  styleEnPlus: style,
+  corps,
+});

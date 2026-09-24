@@ -11,11 +11,7 @@ COPY apps/cli/package.json apps/cli/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm build:docs \
- && mkdir -p /out/docs \
- && cp -r site/. /out/ \
- && cp docs/*.html /out/docs/ \
- && cp -r docs/assets /out/docs/assets
+RUN pnpm build:site && mv dist-site /out
 
 FROM nginx:1.27-alpine AS runtime
 RUN rm /etc/nginx/conf.d/default.conf

@@ -13,6 +13,8 @@ export const site = {
   depot: "https://github.com/Elodias2001/Recade",
   npm: "https://www.npmjs.com/package/@elodias/recade",
   licence: "MIT",
+  // Sert à og:locale. Format Open Graph (souligné), pas BCP 47 (tiret).
+  locale: "fr_FR",
 };
 
 export const auteur = {

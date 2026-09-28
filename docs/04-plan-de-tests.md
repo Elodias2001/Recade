@@ -7,7 +7,7 @@ elles servent à détecter une régression, pas à être vraies éternellement.
 ## Ce que les tests automatisés couvrent
 
 ```bash
-pnpm test           # 37 tests, 4 fichiers, ~2,5 s
+pnpm test           # 94 tests : 37 pour le CLI, 57 pour le site
 ```
 
 ### `identity.test.ts` — le regroupement des signatures

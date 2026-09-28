@@ -10,6 +10,7 @@
  * sur les autres projets publics de l'auteur. C'est testé.
  */
 import { annee, auteur, pagesLegales, site } from "./config.mjs";
+import { VIGNETTES, urlVignette } from "./og.mjs";
 
 export const esc = (v) =>
   String(v).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -80,6 +81,17 @@ const NAV = [
  */
 export function coquille(page) {
   const canonical = `${site.url}${page.chemin}`;
+
+  // Une page sans vignette ne doit pas partir en production : elle se
+  // partagerait sans image. On échoue à la construction plutôt qu'en silence.
+  const vignette = VIGNETTES[page.chemin];
+  if (!vignette) {
+    throw new Error(
+      `Aucune vignette de partage pour « ${page.chemin} ». ` +
+        `Ajoutez-la dans site/og.mjs, puis relancez pnpm build:og.`,
+    );
+  }
+  const imageOg = urlVignette(vignette.fichier);
   const nav = NAV.map(
     (l) => `<a href="${esc(l.href)}"${l.externe ? ' rel="noopener noreferrer"' : ""}>${esc(l.libelle)}</a>`,
   ).join("\n        ");
@@ -95,11 +107,27 @@ export function coquille(page) {
 <title>${esc(page.titre)}</title>
 <meta name="description" content="${esc(page.description)}">
 <link rel="canonical" href="${esc(canonical)}">
+<meta property="og:site_name" content="${esc(site.nom)}">
+<meta property="og:locale" content="${esc(site.locale)}">
 <meta property="og:title" content="${esc(page.titre)}">
 <meta property="og:description" content="${esc(page.description)}">
 <meta property="og:type" content="website">
 <meta property="og:url" content="${esc(canonical)}">
+<meta property="og:image" content="${esc(imageOg)}">
+<meta property="og:image:secure_url" content="${esc(imageOg)}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${esc(vignette.alt)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(page.titre)}">
+<meta name="twitter:description" content="${esc(page.description)}">
+<meta name="twitter:image" content="${esc(imageOg)}">
+<meta name="twitter:image:alt" content="${esc(vignette.alt)}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="/favicon-64.png" sizes="64x64" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>${STYLE}${page.styleEnPlus ?? ""}</style>
 </head>
 <body>

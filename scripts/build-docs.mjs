@@ -13,6 +13,8 @@ import { readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { marked } from "marked";
+import { site } from "../site/config.mjs";
+import { VIGNETTE_DOCS, fichierDocs, urlVignette } from "../site/og.mjs";
 
 const DOCS = fileURLToPath(new URL("../docs", import.meta.url));
 
@@ -25,6 +27,25 @@ const slug = (text) =>
     .replace(/^-|-$/g, "");
 
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+/**
+ * Description de partage d'une fiche : son premier vrai paragraphe, débarrassé
+ * du Markdown. Le `.md` reste la source, on n'ajoute pas d'en-tête à maintenir
+ * en double.
+ */
+function resume(source) {
+  const para = source
+    .split(/\n{2,}/)
+    .map((b) => b.trim())
+    .find((b) => b && !/^[#>|\-=`]/.test(b) && !/^\!\[/.test(b));
+  if (!para) return `Documentation de ${site.nom}.`;
+  const texte = para
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/[*_`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return texte.length > 160 ? texte.slice(0, 157).replace(/\s+\S*$/, "") + "..." : texte;
+}
 
 /** Ancres sur les titres, pour que le sommaire et les liens profonds tiennent. */
 marked.use({
@@ -44,13 +65,41 @@ const EMBLEME = `<svg viewBox="0 0 64 64" width="26" height="26" aria-hidden="tr
       <path d="M32 20.9 L38.3 27.1 L38.3 36.9 L32 43.1 L25.7 36.9 L25.7 27.1 Z" fill="#B8863B"/>
     </svg>`;
 
-function shell({ title, nav, body }) {
+function shell({ title, description, out, nav, body }) {
+  const canonical = `${site.url}/docs/${out}`;
+  const image = urlVignette(fichierDocs(out));
+  const alt = VIGNETTE_DOCS.alt(title);
+  // Le titre visible garde le séparateur typographique du site, jamais le
+  // tiret cadratin : même règle éditoriale que les pages, désormais tenue ici.
+  const titreComplet = `${title} | ${site.nom}`;
   return `<!doctype html>
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)} — Récade</title>
+<title>${esc(titreComplet)}</title>
+<meta name="description" content="${esc(description)}">
+<link rel="canonical" href="${esc(canonical)}">
+<meta property="og:site_name" content="${esc(site.nom)}">
+<meta property="og:locale" content="${esc(site.locale)}">
+<meta property="og:title" content="${esc(titreComplet)}">
+<meta property="og:description" content="${esc(description)}">
+<meta property="og:type" content="article">
+<meta property="og:url" content="${esc(canonical)}">
+<meta property="og:image" content="${esc(image)}">
+<meta property="og:image:secure_url" content="${esc(image)}">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="${esc(alt)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(titreComplet)}">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${esc(image)}">
+<meta name="twitter:image:alt" content="${esc(alt)}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/docs.css">
 </head>
 <body>
@@ -65,7 +114,7 @@ function shell({ title, nav, body }) {
 </nav>
 <main class="page">
 ${body}
-<div class="pied">Récade — MIT © Elodias ADIMOU · Conçu &amp; développé par <a href="/a-propos.html">Elodias ADIMOU</a>.</div>
+<div class="pied">Récade · MIT © Elodias ADIMOU · Conçu &amp; développé par <a href="/a-propos.html">Elodias ADIMOU</a>.</div>
 </main>
 </body>
 </html>
@@ -89,6 +138,7 @@ const pages = await Promise.all(
       file,
       out: `${basename(file, ".md")}.html`,
       title: heading?.[1]?.trim() ?? basename(file, ".md"),
+      description: resume(source),
       source,
     };
   }),
@@ -104,7 +154,13 @@ for (const page of pages) {
 
   await writeFile(
     join(DOCS, page.out),
-    shell({ title: page.title, nav, body: marked.parse(page.source) }),
+    shell({
+      title: page.title,
+      description: page.description,
+      out: page.out,
+      nav,
+      body: marked.parse(page.source),
+    }),
     "utf8",
   );
   console.log(`  ✓ ${page.out.padEnd(28)} ${page.title}`);

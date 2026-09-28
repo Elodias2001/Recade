@@ -1,5 +1,8 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { auteur, contacts, pagesLegales, site } from "./config.mjs";
+import { VIGNETTES } from "./og.mjs";
 
 /**
  * Le site est bâti par `scripts/build-site.mjs` à partir de modules. On teste
@@ -108,5 +111,67 @@ describe("cohérence des faits publiés", () => {
         expect(estRessource && !lien.includes(site.url)).toBe(false);
       }
     }
+  });
+});
+
+describe("vignettes de partage", () => {
+  /** Valeur d'une balise meta, qu'elle soit en `property` ou en `name`. */
+  const meta = (html, cle) =>
+    html.match(
+      new RegExp(`<meta (?:property|name)="${cle}" content="([^"]*)"`),
+    )?.[1] ?? null;
+
+  it.each(toutes)("%s déclare une image absolue en https", (_, html) => {
+    const img = meta(html, "og:image");
+    expect(img).toMatch(/^https:\/\//);
+    // Les moissonneurs ne résolvent pas le relatif : un chemin nu ne marche pas.
+    expect(img).toContain(site.url);
+  });
+
+  it.each(toutes)("%s dimensionne et type son image", (_, html) => {
+    expect(meta(html, "og:image:width")).toBe("1200");
+    expect(meta(html, "og:image:height")).toBe("630");
+    expect(meta(html, "og:image:type")).toBe("image/png");
+    expect(meta(html, "og:image:alt")?.length ?? 0).toBeGreaterThan(30);
+  });
+
+  it.each(toutes)("%s porte la carte Twitter en grand format", (_, html) => {
+    expect(meta(html, "twitter:card")).toBe("summary_large_image");
+    expect(meta(html, "twitter:title")).toBe(meta(html, "og:title"));
+    expect(meta(html, "twitter:description")).toBe(meta(html, "og:description"));
+    expect(meta(html, "twitter:image")).toBe(meta(html, "og:image"));
+  });
+
+  it.each(toutes)("%s nomme le site et sa langue", (_, html) => {
+    expect(meta(html, "og:site_name")).toBe(site.nom);
+    expect(meta(html, "og:locale")).toBe("fr_FR");
+  });
+
+  it.each(toutes)("%s propose une icône pour les clients qui l'affichent", (_, html) => {
+    expect(html).toContain('<link rel="apple-touch-icon" href="/apple-touch-icon.png">');
+    expect(html).toContain('<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">');
+  });
+
+  it("chaque page a SA vignette, aucune n'est partagée", () => {
+    const images = toutes.map(([, html]) => meta(html, "og:image"));
+    expect(new Set(images).size).toBe(images.length);
+  });
+
+  it("chaque vignette existe sur le disque, en 1200x630", () => {
+    for (const v of Object.values(VIGNETTES)) {
+      const chemin = fileURLToPath(new URL(`./img/og/${v.fichier}`, import.meta.url));
+      const png = readFileSync(chemin);
+      expect(png.subarray(1, 4).toString()).toBe("PNG");
+      expect(png.readUInt32BE(16)).toBe(1200);
+      expect(png.readUInt32BE(20)).toBe(630);
+      // Au-delà, certains clients de messagerie renoncent à télécharger.
+      expect(png.length).toBeLessThan(300 * 1024);
+    }
+  });
+
+  it("couvre exactement les pages publiées", () => {
+    expect(Object.keys(VIGNETTES).sort()).toEqual(
+      ["/", "/a-propos", "/confidentialite", "/mentions-legales"].sort(),
+    );
   });
 });

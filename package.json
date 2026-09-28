@@ -13,7 +13,8 @@
     "type-check": "turbo run type-check",
     "build:docs": "node scripts/build-docs.mjs",
     "build:site": "node scripts/build-docs.mjs && node scripts/build-site.mjs",
-    "test:site": "vitest run"
+    "test:site": "vitest run",
+    "build:og": "node scripts/build-og.mjs"
   },
   "devDependencies": {
     "marked": "^18.0.14",

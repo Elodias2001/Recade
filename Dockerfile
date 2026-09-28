@@ -16,5 +16,6 @@ RUN pnpm build:site && mv dist-site /out
 FROM nginx:1.27-alpine AS runtime
 RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx-securite.conf /etc/nginx/conf.d/securite.conf
 COPY --from=build /out /usr/share/nginx/html
 EXPOSE 8080

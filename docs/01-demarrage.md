@@ -134,10 +134,30 @@ reconstruit en ~10 ms.
 | Commande | Effet |
 |---|---|
 | `pnpm build` | Construit le CLI (`apps/cli/dist`) |
-| `pnpm test` | Vitest — 37 tests, ~2,5 s |
+| `pnpm test` | Vitest — 94 tests : 37 pour le CLI, 57 pour le site |
 | `pnpm type-check` | `tsc --noEmit`, mode strict |
 | `pnpm build:docs` | Régénère `docs/*.html` depuis les `.md` |
+| `pnpm build:og` | Régénère les vignettes de partage (exige un Chromium) |
 | `pnpm --filter recade dev` | Reconstruction en continu |
+
+## Vignettes de partage
+
+Quand un lien du site est collé dans WhatsApp, Slack ou LinkedIn, l'aperçu
+affiche une image 1200x630 aux couleurs de la marque. Une par page, définies
+dans `site/og.mjs`.
+
+```bash
+pnpm build:og      # rend les PNG dans site/img/og/
+```
+
+**Ces PNG sont commités, et `build:site` ne les régénère pas.** Le rendu exige
+un Chromium que l'image Docker n'embarque pas, et la police du site n'existe
+pas dans un conteneur Linux : générer au déploiement donnerait une vignette
+différente de celle validée. On fige à la main.
+
+Changer un titre de page ou une fiche de documentation, c'est donc relancer
+`pnpm build:og` et commiter le résultat. Une page ajoutée sans son entrée dans
+`site/og.mjs` **fait échouer la construction** : elle se partagerait sans image.
 
 ## Où se trouve quoi
 
@@ -174,7 +194,7 @@ est refusée, quel que soit son intérêt.
 
 ```bash
 pnpm type-check     # aucune erreur
-pnpm test           # 37 passed
+pnpm test           # 94 passed
 pnpm build          # Build success
 pnpm build:docs           # 5 fiches générées
 ```
@@ -195,6 +215,8 @@ La recette complète est dans [le plan de tests](04-plan-de-tests.html).
 | `Aucun navigateur Chromium trouvé` | Pas de Chrome pour le PDF | L'installer, ou `RECADE_CHROME=/chemin/vers/chrome` |
 | `recade` introuvable après `pnpm link` | Le dossier des binaires globaux de pnpm n'est pas dans le `PATH` | `pnpm setup`, puis rouvrir le terminal |
 | Le HTML de `docs/` ne change pas | Il est généré | Éditer le `.md`, puis `pnpm build:docs` |
+| La vignette partagée montre l'ancien titre | Les PNG sont commités, pas générés au déploiement | `pnpm build:og`, puis commiter `site/img/og/` |
+| WhatsApp affiche encore l'ancienne vignette | Aperçu mis en cache côté plateforme | Passer par le Sharing Debugger de Facebook, ou partager l'URL avec `?v=2` |
 | Des processus Chrome traînent | Régression du nettoyage après PDF | `pkill -f print-to-pdf`, puis voir R12 du plan de tests |
 
 ## Ce qui ne peut pas mal tourner

@@ -26,8 +26,16 @@ const style = `
   p.lead b{color:var(--forge);font-weight:600}
   pre{background:var(--forge);color:#EDE6D8;padding:20px 22px;overflow-x:auto;
     border-left:3px solid var(--laiton);font-size:13px;line-height:1.7;margin:22px 0 0}
-  pre .g{color:var(--laiton-clair)} pre .d{color:#A79B87} pre .v{color:#9CCBA8}
-  pre .r{color:#E5A196} pre .w{color:#fff;font-weight:600}
+  pre .g{color:var(--laiton-clair)} pre .d{color:#A79B87}
+  pre .w{color:#fff;font-weight:600}
+  /* Les deux seules couleurs sémantiques du produit : confirmé et réfuté.
+     Elles ne décorent jamais rien, un test le vérifie. Deux valeurs par
+     sens, parce qu'aucune teinte ne tient le contraste AA sur les deux
+     fonds : mesuré, le vert-de-gris #5E7A66 de la marque ne fait que
+     3,96:1 sur la forge et 4,26:1 sur le papier d'impression. */
+  pre .v,.verdict.ok{color:#9CCBA8}    /* 10,26:1 sur forge */
+  pre .r,.verdict.ko{color:#E5A196}    /*  8,79:1 sur forge */
+  .verdict{font-weight:600}
   .duo{display:grid;grid-template-columns:1fr 1fr;gap:32px}
   .carte{border:1px solid var(--filet);border-top:2px solid var(--laiton);padding:22px}
   .carte h4{margin:0 0 8px;font-size:17px;font-weight:600}
@@ -123,11 +131,11 @@ const corps = `<div class="wrap">
   <span class="v">✓</span> Fusions revendiquées  185 réelles
   <span class="v">✓</span> Lignes TypeScript     142228
 
-  <span class="v">✓ Attestation confirmée</span> <span class="d">: tous les compteurs se recalculent à l'identique.</span></pre>
+  <span class="verdict ok">✓ Attestation confirmée</span> <span class="d">: tous les compteurs se recalculent à l'identique.</span></pre>
     <p class="lead" style="margin-top:22px">Gonflez un chiffre, et&nbsp;:</p>
 <pre>  <span class="r">✗</span> Commits signés        <span class="r">1025</span>   <span class="d">attesté : 1800</span>
 
-  <span class="r">✗ Attestation réfutée</span> <span class="d">: au moins un compteur ne tient pas.</span></pre>
+  <span class="verdict ko">✗ Attestation réfutée</span> <span class="d">: au moins un compteur ne tient pas.</span></pre>
   </section>
 
   <section>

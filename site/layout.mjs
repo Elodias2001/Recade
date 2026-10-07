@@ -65,8 +65,14 @@ const IMPRESSION = `/* ---------------------------------------------------------
     pre{background:#F7F3EA;color:var(--doux);border-left:3pt solid var(--laiton)}
     pre .w{color:var(--forge);font-weight:700}
     pre .d{color:var(--cendre)}
-    pre .g,pre .v{color:var(--lien)}
-    pre .r{color:#8C2F26}
+    pre .g{color:var(--lien)}
+    /* .v et .r portent un SENS, pas un accent : les imprimer en brun comme
+       le laiton effacerait la distinction entre confirmé et réfuté. Valeurs
+       choisies pour le fond clair d'impression, mesurées sur #F7F3EA :
+       #2F5D43 donne 6,85:1 et #8C2F26 donne 7,44:1, les deux au niveau AA.
+       Le vert-de-gris #5E7A66 de la marque n'y atteint que 4,26:1. */
+    pre .v,.verdict.ok{color:#2F5D43}
+    pre .r,.verdict.ko{color:#8C2F26}
 
     /* Les encarts sombres des pages : le nom, l'appel, la promesse, les
        en-têtes de tableau. Les paragraphes DESCENDANTS sont visés

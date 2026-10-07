@@ -175,3 +175,67 @@ describe("vignettes de partage", () => {
     );
   });
 });
+
+describe("le verdict ne dépend jamais de la couleur", () => {
+  /**
+   * Règle du GOV.UK Design System reprise ici : on ne réassigne pas le sens
+   * d'une couleur. Chez Récade, deux couleurs seulement portent un sens,
+   * « confirmé » et « réfuté ». Elles ne décorent jamais rien d'autre, et un
+   * lecteur qui ne les distingue pas doit comprendre quand même.
+   */
+
+  /** Rapport de contraste WCAG entre deux couleurs hexadécimales. */
+  const luminance = (hex) => {
+    const c = hex.replace("#", "");
+    const v = [0, 2, 4].map((i) => Number.parseInt(c.slice(i, i + 2), 16) / 255);
+    const f = (x) => (x <= 0.03928 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * f(v[0]) + 0.7152 * f(v[1]) + 0.0722 * f(v[2]);
+  };
+  const contraste = (a, b) => {
+    const [haut, bas] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+    return (haut + 0.05) / (bas + 0.05);
+  };
+
+  /** Le CSS de la page, commentaires retirés : ils citent les valeurs. */
+  const regles = (html) =>
+    html
+      .match(/<style>([\s\S]*?)<\/style>/)[1]
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("}");
+
+  /** Les couleurs qui disent « confirmé » ou « réfuté », et rien d'autre. */
+  const SEMANTIQUES = ["#9CCBA8", "#E5A196", "#2F5D43", "#8C2F26", "#5E7A66"];
+
+  it("s'écrit en toutes lettres, des deux côtés", () => {
+    expect(pages.accueil).toContain("Attestation confirmée");
+    expect(pages.accueil).toContain("Attestation réfutée");
+  });
+
+  it.each(toutes)("%s réserve les couleurs sémantiques au verdict", (_, html) => {
+    for (const regle of regles(html)) {
+      if (!SEMANTIQUES.some((c) => regle.toUpperCase().includes(c))) continue;
+      // Une règle qui pose un vert ou un rouge doit viser une marque de
+      // vérification ou un verdict. Sinon, la couleur se met à vouloir dire
+      // autre chose, et le code couleur du produit ne veut plus rien dire.
+      expect(regle).toMatch(/\.v\b|\.r\b|\.verdict/);
+    }
+  });
+
+  it("les deux couleurs tiennent AA sur le fond où elles s'affichent", () => {
+    // À l'écran, dans le bloc de commande sur fond forge
+    expect(contraste("#9CCBA8", "#14120F")).toBeGreaterThanOrEqual(4.5);
+    expect(contraste("#E5A196", "#14120F")).toBeGreaterThanOrEqual(4.5);
+    // Sur le papier, où le bloc devient clair
+    expect(contraste("#2F5D43", "#F7F3EA")).toBeGreaterThanOrEqual(4.5);
+    expect(contraste("#8C2F26", "#F7F3EA")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("aucune teinte ne sert sur les deux fonds à la fois", () => {
+    // Ce test fige le constat qui a imposé deux paires plutôt qu'une : le
+    // vert-de-gris #5E7A66 de brand/tokens.json n'atteint AA sur aucun des
+    // deux fonds. Si un jour il y arrive, cette attente tombera et on
+    // pourra simplifier.
+    expect(contraste("#5E7A66", "#14120F")).toBeLessThan(4.5);
+    expect(contraste("#5E7A66", "#F7F3EA")).toBeLessThan(4.5);
+  });
+});

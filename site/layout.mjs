@@ -21,6 +21,77 @@ const EMBLEME = (taille = 28) => `<svg viewBox="0 0 64 64" width="${taille}" hei
       <path d="M32 20.9 L38.3 27.1 L38.3 36.9 L32 43.1 L25.7 36.9 L25.7 27.1 Z" fill="#B8863B"/>
     </svg>`;
 
+/**
+ * Règles d'impression, volontairement SÉPARÉES de STYLE.
+ *
+ * `coquille()` écrit STYLE puis `page.styleEnPlus` : à spécificité égale,
+ * une règle de page gagnerait sur une règle d'impression écrite dans STYLE.
+ * C'est ce qui a d'abord fait disparaître `.hero p` et `.kicker` du papier.
+ * Ce bloc doit donc toujours être écrit EN DERNIER.
+ */
+const IMPRESSION = `/* ------------------------------------------------------------------
+     Impression.
+
+     Le site n'avait aucune règle d'impression, alors que l'attestation en
+     a depuis toujours. Or le navigateur jette les fonds par défaut, et le
+     hero vit DANS .manche : à l'impression, le fond forge disparaissait et
+     tout le texte ivoire posé dessus devenait invisible. Nom du produit,
+     navigation, titre, accroche et bouton : rien ne sortait. Vérifié le
+     7 octobre 2026 en simulant « Graphiques d'arrière-plan » décoché.
+
+     On inverse les surfaces sombres plutôt que de forcer
+     print-color-adjust : ce réglage reste à la main du visiteur, et il
+     noircirait des pages entières pour rien. Le site s'imprime donc clair,
+     comme l'attestation.
+     ------------------------------------------------------------------ */
+  @media print{
+    @page{margin:16mm}
+    html{scroll-behavior:auto}
+    body{background:#fff;color:var(--forge);font-size:11.5pt;line-height:1.5}
+    .saut{display:none}
+    .wrap{max-width:none;padding:0}
+
+    /* le manche et tout ce qui vivait dessus */
+    .manche{background:#fff;color:var(--forge);border-bottom:1.5pt solid var(--laiton)}
+    .bar{border-bottom:0;padding:0 0 10px}
+    .bar nav{display:none}
+    .brand{color:var(--forge)}
+    .kicker{color:var(--lien)}
+    .hero p,.hero p b{color:var(--forge)}
+    .cmd{background:#F7F3EA;border-color:var(--laiton);color:var(--lien)}
+    .btn,.btn.ghost{background:transparent;border:1pt solid var(--lien);color:var(--lien)}
+
+    /* les démonstrations de commande : sans ça, les chiffres s'effacent */
+    pre{background:#F7F3EA;color:var(--doux);border-left:3pt solid var(--laiton)}
+    pre .w{color:var(--forge);font-weight:700}
+    pre .d{color:var(--cendre)}
+    pre .g,pre .v{color:var(--lien)}
+    pre .r{color:#8C2F26}
+
+    /* Les encarts sombres des pages : le nom, l'appel, la promesse, les
+       en-têtes de tableau. Les paragraphes DESCENDANTS sont visés
+       explicitement : .fort p et .appel p posent leur propre blanc, et les
+       couvrir seulement au niveau du bloc laissait le texte invisible. */
+    .nom-bloc,.appel,.fort{background:#F7F3EA;color:var(--doux);
+      border-left:3pt solid var(--laiton)}
+    .nom-bloc p,.appel p,.fort p{color:var(--doux)}
+    .nom-bloc b,.appel b,.fort b{color:var(--forge)}
+    th{background:#F7F3EA;color:var(--forge);border-bottom:1pt solid var(--laiton)}
+
+    footer{background:#fff;color:var(--doux);border-top:1pt solid var(--filet);padding:18px 0 0}
+    footer a{color:var(--lien)}
+    footer .liens{display:none}
+
+    /* une adresse imprimée doit rester joignable */
+    main a[href^="http"]::after,footer .credit a[href^="http"]::after{
+      content:" (" attr(href) ")";font-size:8.5pt;color:var(--cendre);word-break:break-all}
+
+    section{page-break-inside:avoid}
+    h1,h2,h3{page-break-after:avoid}
+    img{page-break-inside:avoid}
+  }
+`;
+
 const STYLE = `
   :root{
     --forge:#14120F;--forge-2:#1F1B16;--laiton:#B8863B;--laiton-clair:#E0B65C;
@@ -67,6 +138,7 @@ const STYLE = `
 
   @media (max-width:760px){ h1{font-size:32px} }
   @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} *{animation:none!important;transition:none!important} }
+
 `;
 
 const NAV = [
@@ -128,7 +200,7 @@ export function coquille(page) {
 <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="/favicon-64.png" sizes="64x64" type="image/png">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<style>${STYLE}${page.styleEnPlus ?? ""}</style>
+<style>${STYLE}${page.styleEnPlus ?? ""}${IMPRESSION}</style>
 </head>
 <body>
 <a class="saut" href="#contenu">Aller au contenu</a>

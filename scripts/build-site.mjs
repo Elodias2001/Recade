@@ -33,6 +33,12 @@ const enKo = (octets) => `${(octets / 1024).toFixed(1).replace(".", ",")} Ko`;
 /**
  * Inscrit dans la page son propre poids compressé.
  *
+ * gzipSync compresse au niveau 6, celui de zlib par défaut. nginx doit
+ * compresser au MÊME niveau, sinon le chiffre annoncé ne décrit pas ce que le
+ * visiteur télécharge : son défaut à lui est le niveau 1, et on transférait
+ * 10 114 octets là où la page en annonçait 8 909. Voir `gzip_comp_level` dans
+ * nginx.conf. Ces deux valeurs bougent ensemble.
+ *
  * Écrire le poids change le poids : on itère jusqu'au point fixe. Arrondi au
  * dixième de kilo-octet, les quelques octets que coûte le chiffre lui-même ne
  * font presque jamais basculer l'arrondi, et la suite converge en deux ou

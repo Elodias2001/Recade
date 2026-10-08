@@ -80,3 +80,55 @@ describe("renderHtmlAttestation", () => {
     expect(html).not.toContain("@import");
   });
 });
+
+describe("aucun chiffre sans sa preuve", () => {
+  /**
+   * Règle 2 d'AGENTS.md : un compteur sans le moyen de le recalculer n'a pas
+   * sa place. Le type `Ligne` l'impose déjà au compilateur ; ce test couvre
+   * le rendu, au cas où une ligne arriverait un jour par un autre chemin.
+   */
+  const html = renderHtmlAttestation(base);
+
+  it("chaque ligne chiffrée porte une preuve dépliable", () => {
+    const lignes = html.match(/<div class="r">/g) ?? [];
+    const preuves = html.match(/<div class="preuve">/g) ?? [];
+    const bascules = html.match(/class="bascule"/g) ?? [];
+    expect(lignes.length).toBeGreaterThan(0);
+    expect(preuves).toHaveLength(lignes.length);
+    expect(bascules).toHaveLength(lignes.length);
+  });
+
+  it("aucune preuve n'est vide", () => {
+    for (const [, texte] of html.matchAll(/<div class="preuve">([\s\S]*?)<\/div>/g)) {
+      expect(texte.trim().length).toBeGreaterThan(20);
+    }
+  });
+
+  it("chaque preuve cite le commit d'ancrage ou les empreintes embarquées", () => {
+    const court = base.repository.headSha.slice(0, 10);
+    for (const [, texte] of html.matchAll(/<div class="preuve">([\s\S]*?)<\/div>/g)) {
+      expect(texte.includes(court) || /empreintes/.test(texte)).toBe(true);
+    }
+  });
+
+  it("montre le commit d'ancrage ET celui du premier commit", () => {
+    // firstCommitSha voyageait dans le bundle sans jamais être affiché :
+    // verify s'en servait, le lecteur ne le voyait pas.
+    expect(html).toContain(base.repository.headSha);
+    expect(html).toContain(base.repository.firstCommitSha);
+  });
+
+  it("le dépliage ne coûte aucun script : tout passe par une case à cocher", () => {
+    const executables = [...html.matchAll(/<script\b([^>]*)>/g)].filter(
+      (m) => !/type="application\/json"/.test(m[1]!),
+    );
+    expect(executables).toHaveLength(0);
+    expect(html).toContain('type="checkbox"');
+  });
+
+  it("tout est déplié à l'impression", () => {
+    const print = html.match(/@media print\{[\s\S]*?\n  \}/)?.[0] ?? "";
+    expect(print).toMatch(/\.preuve\{max-height:none/);
+    expect(print).toMatch(/\.voir,\.bascule\{display:none\}/);
+  });
+});

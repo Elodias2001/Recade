@@ -50,6 +50,51 @@ const enKo = (octets) => `${(octets / 1024).toFixed(1).replace(".", ",")} Ko`;
  * et on écrit « au plus ». Le lecteur garde un chiffre qu'il peut vérifier, et
  * qui n'est jamais dépassé.
  */
+/**
+ * Retire les commentaires du CSS servi, et d'eux seuls.
+ *
+ * Les feuilles du site sont écrites dans des gabarits abondamment commentés :
+ * c'est voulu, chaque règle d'impression porte la trace du défaut qui l'a
+ * rendue nécessaire. Mais ces commentaires partaient chez le visiteur. Sur la
+ * page d'accueil ils pesaient 4 751 octets bruts, soit 2 210 octets une fois
+ * compressés, 23 % de la page. Ils restent dans la source, où ils servent ;
+ * ils ne descendent plus sur le réseau, où ils ne servent à personne.
+ *
+ * On ne retire que `/* ... *\/` hors des chaînes : un `content: "/*"` ne doit
+ * pas ouvrir un commentaire. D'où l'automate plutôt qu'une expression
+ * régulière.
+ */
+function sansNotesCss(css) {
+  let out = "";
+  let i = 0;
+  let guillemet = null;
+  while (i < css.length) {
+    const c = css[i];
+    if (guillemet) {
+      out += c;
+      if (c === "\\") { out += css[i + 1] ?? ""; i += 2; continue; }
+      if (c === guillemet) guillemet = null;
+      i += 1;
+      continue;
+    }
+    if (c === '"' || c === "'") { guillemet = c; out += c; i += 1; continue; }
+    if (c === "/" && css[i + 1] === "*") {
+      const fin = css.indexOf("*/", i + 2);
+      i = fin < 0 ? css.length : fin + 2;
+      // une espace suffit à séparer deux règles que le commentaire séparait
+      out += " ";
+      continue;
+    }
+    out += c;
+    i += 1;
+  }
+  // les blancs laissés par les commentaires retirés
+  return out.replace(/[ \t]+/g, " ").replace(/\n\s*\n+/g, "\n");
+}
+
+const degraisser = (html) =>
+  html.replace(/<style>([\s\S]*?)<\/style>/g, (_, css) => `<style>${sansNotesCss(css)}</style>`);
+
 function inscrirePoids(html, nom) {
   if (!html.includes(MARQUE)) {
     throw new Error(`${nom} ne contient pas ${MARQUE} : le pied de page a changé.`);
@@ -78,7 +123,7 @@ await mkdir(SORTIE, { recursive: true });
 // --- pages ---
 for (const route of ROUTES) {
   const { default: brut } = await import(join(RACINE, "site", "pages", route.module));
-  const html = inscrirePoids(brut, route.fichier);
+  const html = inscrirePoids(degraisser(brut), route.fichier);
   await writeFile(join(SORTIE, route.fichier), html, "utf8");
 
   // On relit depuis le disque : le chiffre annoncé doit décrire le fichier

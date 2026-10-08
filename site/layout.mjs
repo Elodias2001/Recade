@@ -84,6 +84,17 @@ const IMPRESSION = `/* ---------------------------------------------------------
     .nom-bloc b,.appel b,.fort b{color:var(--forge)}
     th{background:#F7F3EA;color:var(--forge);border-bottom:1pt solid var(--laiton)}
 
+    /* Le badge du hero. Troisième occurrence du même piège : un texte clair
+       sur fond sombre disparait quand le navigateur n'imprime pas les fonds.
+       Et il ne se balance pas sur papier : l'animation au défilement est figée
+       sur sa première image, donc penchée, si on ne la coupe pas. */
+    .porte{transform:none !important;animation:none !important}
+    .cordon,.badge .fente{display:none}
+    .badge{box-shadow:inset 0 0 0 1pt var(--ivoire-2) !important}
+    .badge .tete{background:#F7F3EA;color:var(--forge);
+      border-bottom:1pt solid var(--laiton)}
+    .badge .tete em{color:var(--lien)}
+
     footer{background:#fff;color:var(--doux);border-top:1pt solid var(--filet);padding:18px 0 0}
     footer a{color:var(--lien)}
     footer .liens{display:none}

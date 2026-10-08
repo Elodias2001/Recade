@@ -36,25 +36,34 @@ const enKo = (octets) => `${(octets / 1024).toFixed(1).replace(".", ",")} Ko`;
  * Écrire le poids change le poids : on itère jusqu'au point fixe. Arrondi au
  * dixième de kilo-octet, les quelques octets que coûte le chiffre lui-même ne
  * font presque jamais basculer l'arrondi, et la suite converge en deux ou
- * trois passes. Si elle oscille, on échoue plutôt que de publier un nombre
- * faux : ce site affirme que tout chiffre annoncé doit être recalculable,
- * celui-ci le premier.
+ * trois passes.
+ *
+ * Presque jamais n'est pas jamais : quand la page tombe pile sur une frontière
+ * d'arrondi, la suite oscille entre deux valeurs. On ne baisse pas l'exigence
+ * pour autant, on dit la vérité autrement : on retient la plus grande des deux
+ * et on écrit « au plus ». Le lecteur garde un chiffre qu'il peut vérifier, et
+ * qui n'est jamais dépassé.
  */
 function inscrirePoids(html, nom) {
   if (!html.includes(MARQUE)) {
     throw new Error(`${nom} ne contient pas ${MARQUE} : le pied de page a changé.`);
   }
-  let annonce = enKo(gzipSync(Buffer.from(html.replace(MARQUE, "0,0 Ko"))).length);
-  for (let passe = 0; passe < 8; passe++) {
-    const page = html.replace(MARQUE, annonce);
-    const reel = enKo(gzipSync(Buffer.from(page)).length);
-    if (reel === annonce) return page;
+  const peser = (annonce) => gzipSync(Buffer.from(html.replace(MARQUE, annonce))).length;
+
+  let annonce = enKo(peser("0,0 Ko"));
+  const vus = [];
+  for (let passe = 0; passe < 12; passe++) {
+    const reel = enKo(peser(annonce));
+    if (reel === annonce) return html.replace(MARQUE, annonce);
+    if (vus.includes(reel)) {
+      // cycle : on prend la borne haute, jamais dépassée par le fichier écrit
+      const haut = [...vus, reel].sort().at(-1);
+      return html.replace(MARQUE, `au plus ${haut}`);
+    }
+    vus.push(annonce);
     annonce = reel;
   }
-  throw new Error(
-    `Le poids déclaré de ${nom} n'a pas convergé en 8 passes. ` +
-      `Augmenter la granularité, ou admettre que le chiffre est instable.`,
-  );
+  throw new Error(`Le poids déclaré de ${nom} n'a pas convergé en 12 passes.`);
 }
 
 await rm(SORTIE, { recursive: true, force: true });
@@ -70,8 +79,13 @@ for (const route of ROUTES) {
   // réellement servi, pas la chaîne qu'on croyait écrire.
   const servi = await readFile(join(SORTIE, route.fichier));
   const mesure = enKo(gzipSync(servi).length);
-  const annonce = /Cette page pèse <b>([^<]+)<\/b>/.exec(servi.toString())?.[1];
-  if (annonce !== mesure) {
+  const annonce = /Cette page pèse <b>([^<]+)<\/b>/.exec(servi.toString())?.[1] ?? "";
+  const borne = annonce.startsWith("au plus ");
+  const valeur = borne ? annonce.slice(8) : annonce;
+  const exact = Number.parseFloat(mesure.replace(",", "."));
+  const declare = Number.parseFloat(valeur.replace(",", "."));
+  const juste = borne ? exact <= declare : valeur === mesure;
+  if (!juste) {
     throw new Error(`${route.fichier} annonce ${annonce} mais pèse ${mesure}.`);
   }
   console.log(`  ✓ ${route.fichier.padEnd(24)} ${route.url.padEnd(20)} ${mesure}`);

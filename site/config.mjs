@@ -95,3 +95,34 @@ export const pagesLegales = [
   { href: "/mentions-legales", libelle: "Mentions légales" },
   { href: "/confidentialite", libelle: "Confidentialité" },
 ];
+
+/**
+ * Les chiffres de la démonstration, relevés en une seule fois.
+ *
+ * Ils apparaissaient à trois endroits de la page d'accueil, écrits à la main :
+ * le badge du hero, le terminal du scan et le bloc verify. Le 8 octobre 2026
+ * ils se contredisaient, 1 027 contre 1 044 et 186 contre 193, pour le même
+ * dépôt. Une page qui publie trois comptes du même dépôt fait exactement ce
+ * que Récade reproche aux CV. Ils viennent donc d'ici, et d'ici seulement.
+ *
+ * `releve` n'est pas décoratif : les compteurs d'un dépôt vivant bougent, et
+ * un chiffre publié sans sa date ne veut rien dire.
+ */
+export const demo = {
+  depot: "inventaire",
+  releve: "8 octobre 2026",
+  periode: "novembre 2025 → octobre 2026",
+  commitsSignes: 1044,
+  commitsTotal: 1995,
+  rang: 1,
+  equipe: 7,
+  fusions: 193,
+  lignes: 143619,
+  stack: "Docker · Drizzle ORM · Hono · Next.js · React",
+  premierCommit: "457c7ce8ae",
+  // le contre-exemple du bloc verify : un chiffre gonflé que le scan réfute
+  gonfle: 1800,
+};
+
+/** Un nombre à la française, avec une espace simple comme séparateur. */
+export const nb = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");

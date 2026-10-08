@@ -98,6 +98,12 @@ const IMPRESSION = `/* ---------------------------------------------------------
     footer{background:#fff;color:var(--doux);border-top:1pt solid var(--filet);padding:18px 0 0}
     footer a{color:var(--lien)}
     footer .liens{display:none}
+    /* La ligne de poids : ses règles d'écran portent deux classes, elles
+       battent le footer ci-dessus à la spécificité, quel que soit l'ordre.
+       Il faut les reprendre une à une, sinon elle s'imprime en blanc sur
+       blanc. Relevé dans le PDF le 8 octobre 2026. */
+    footer .poids{color:var(--cendre)}
+    footer .poids b{color:var(--forge)}
 
     /* une adresse imprimée doit rester joignable */
     main a[href^="http"]::after,footer .credit a[href^="http"]::after{

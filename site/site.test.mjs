@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { auteur, contacts, pagesLegales, site } from "./config.mjs";
+import { auteur, contacts, demo, nb, pagesLegales, site } from "./config.mjs";
 import { VIGNETTES } from "./og.mjs";
 
 /**
@@ -237,5 +237,60 @@ describe("le verdict ne dépend jamais de la couleur", () => {
     // pourra simplifier.
     expect(contraste("#5E7A66", "#14120F")).toBeLessThan(4.5);
     expect(contraste("#5E7A66", "#F7F3EA")).toBeLessThan(4.5);
+  });
+});
+
+/**
+ * Deux pannes de construction le 8 octobre 2026, même cause : un accent grave
+ * écrit dans un commentaire CSS, lui-même dans un gabarit JavaScript, ferme le
+ * gabarit et le module ne se charge plus. Le symptôme n'est pas l'accent grave,
+ * c'est le module illisible : on teste donc le chargement, qui attrape cette
+ * cause et toutes les autres. `pnpm test` ne construisait pas le site, rien ne
+ * voyait la panne.
+ */
+describe("les modules du site", () => {
+  it.each(["layout.mjs", "config.mjs", "og.mjs", "pages/index.mjs"])(
+    "%s se charge",
+    async (f) => {
+      await expect(import(`./${f}`)).resolves.toBeTypeOf("object");
+    },
+  );
+});
+
+/**
+ * Le 8 octobre 2026, la page d'accueil publiait trois comptes du même dépôt :
+ * 1 027 dans le badge, 1 044 dans le terminal, 1025 dans le bloc verify. Elle
+ * faisait donc, sur elle-même, exactement ce que Récade reproche aux CV.
+ * Depuis, tout vient de `demo` dans config.mjs. Ce test interdit le retour en
+ * arrière : il relit le texte rendu et exige un seul chiffre par métrique.
+ */
+describe("les chiffres de la démonstration", () => {
+  const texte = visible(pages.accueil).replace(/\u202f|\u00a0/g, " ");
+
+  it.each([
+    ["Commits signés", demo.commitsSignes],
+    ["Fusions relues", demo.fusions],
+    ["Fusions revendiquées", demo.fusions],
+    ["Lignes TypeScript", demo.lignes],
+  ])("%s ne publie que le chiffre relevé", (label, attendu) => {
+    const vus = [...texte.matchAll(new RegExp(`${label}\\s+([\\d  ]+\\d)`, "g"))]
+      .map((m) => Number(m[1].replace(/[\s ]/g, "")));
+    expect(vus.length, `aucun « ${label} » dans la page`).toBeGreaterThan(0);
+    expect([...new Set(vus)]).toEqual([attendu]);
+  });
+
+  it("porte la date du relevé, parce qu'un compteur sans date ne vaut rien", () => {
+    expect(texte).toContain(demo.releve);
+  });
+
+  it("n'écrit plus aucun des chiffres périmés", () => {
+    for (const perime of ["1 027", "1025", "1 025", "186", "185", "1 976", "142228"]) {
+      expect(texte, `« ${perime} » est revenu dans la page`).not.toContain(perime);
+    }
+  });
+
+  it("le contre-exemple du bloc verify reste faux, sinon il ne démontre rien", () => {
+    expect(demo.gonfle).not.toBe(demo.commitsSignes);
+    expect(texte).toContain(`attesté : ${demo.gonfle}`);
   });
 });

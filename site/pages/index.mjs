@@ -1,4 +1,4 @@
-import { site } from "../config.mjs";
+import { demo, nb, site } from "../config.mjs";
 import { coquille } from "../layout.mjs";
 
 const style = `
@@ -71,7 +71,7 @@ const style = `
     background:#F1F5F1;border-left:2px solid currentColor}
   .badge .verdict.ok{color:#2F5D43}
 
-  @media (prefers-reduced-motion: no-preference){
+  @media screen and (prefers-reduced-motion: no-preference){
     @supports (animation-timeline: view()){
       .porte{animation:balancer linear both;animation-timeline:view();
         animation-range:entry 0% exit 100%;transform-origin:top center}
@@ -102,6 +102,38 @@ const style = `
   p.lead b{color:var(--forge);font-weight:600}
   pre{background:var(--forge);color:#EDE6D8;padding:20px 22px;overflow-x:auto;
     border-left:3px solid var(--laiton);font-size:13px;line-height:1.7;margin:22px 0 0}
+  /* La frappe du terminal, en TEXTE et jamais en vidéo : la sortie reste
+     sélectionnable, copiable, lisible à voix haute et imprimable. Sans
+     support ou en mouvement réduit, elle est là d'emblée, entière. */
+  /* width:max-content, sinon le bloc prend la largeur du pre et le texte en
+     white-space:pre déborde SANS élargir le pre : à 320 px la ligne Stack
+     était coupée de 314 px, et aucune barre ne permettait d'aller la lire.
+     min-width:100% garde la ligne pleine largeur sur grand écran. */
+  .terminal .l{display:block;white-space:pre;width:max-content;min-width:100%}
+  .releve{margin-top:12px;font-size:13px;color:var(--cendre);max-width:36em}
+  .bascule{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap}
+  .rejouer{display:inline-block;margin-left:6px;font-size:12px;letter-spacing:.6px;
+    color:var(--lien);cursor:pointer;border-bottom:1px dotted var(--laiton);
+    user-select:none;padding:2px 0}
+  .rejouer:hover{border-bottom-style:solid}
+  .bascule:focus-visible+pre+.releve .rejouer{outline:2px solid var(--laiton);outline-offset:2px}
+
+  @media screen and (prefers-reduced-motion: no-preference){
+    @supports (animation-timeline: view()){
+      /* --i porte le rang de la ligne : une règle décalée au lieu de dix. */
+      /* La frappe découvre la ligne par la droite. On anime clip-path et non
+         width : une largeur animée se bat avec max-content et rognait le
+         défilement horizontal. Sans animation, aucun clip n'est posé, donc
+         l'état par défaut reste la ligne entière.
+         --i porte le rang de la ligne : une règle décalée au lieu de dix. */
+      .terminal .l{animation:frappe linear both;animation-timeline:view();
+        animation-range:entry calc(16% + var(--i) * 5%) entry calc(30% + var(--i) * 5%)}
+      @keyframes frappe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+      #rejouer:checked~.terminal .l{animation-name:frappe-bis}
+      @keyframes frappe-bis{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+    }
+  }
   pre .g{color:var(--laiton-clair)} pre .d{color:#A79B87}
   pre .w{color:#fff;font-weight:600}
   /* Les deux seules couleurs sémantiques du produit : confirmé et réfuté.
@@ -164,12 +196,12 @@ const enTete = `
                 <circle cx="32" cy="32" r="30" fill="none" stroke="#B8863B" stroke-width="3.4"/>
                 <path d="M32 16 L42 26 L42 38 L32 48 L22 38 L22 26 Z" fill="#B8863B"/>
               </svg>
-              inventaire<em>ATTESTATION</em>
+              ${demo.depot}<em>ATTESTATION</em>
             </div>
             <div class="corps">
-              <div class="l"><span>Commits signés</span><b>1 027</b></div>
-              <div class="l"><span>Rang</span><b>1er / 7</b></div>
-              <div class="l"><span>Fusions relues</span><b>186</b></div>
+              <div class="l"><span>Commits signés</span><b>${nb(demo.commitsSignes)}</b></div>
+              <div class="l"><span>Rang</span><b>${demo.rang}er / ${demo.equipe}</b></div>
+              <div class="l"><span>Fusions relues</span><b>${nb(demo.fusions)}</b></div>
               <div class="verdict ok">Attestation confirmée</div>
             </div>
           </div>
@@ -197,19 +229,25 @@ const corps = `<div class="wrap">
   <section>
     <h2>Ce que fait Récade</h2>
     <h3>Il lit <code>.git</code>, il compte, il n'écrit que des nombres.</h3>
-<pre><span class="d">$</span> <span class="w">npx @elodias/recade scan ~/Projets/inventaire</span>
-
-  <span class="g">◆</span>  <span class="w">RÉCADE</span>   <span class="d">attestation de contribution</span>
-     <span class="w">inventaire</span> <span class="d">· scan local, aucun code transmis</span>
-
-  <span class="d">Période             </span>novembre 2025 → septembre 2026
-  <span class="d">Commits signés      </span><span class="w">1 025</span> / 1 976   <span class="d">1er contributeur sur 7</span>
-  <span class="d">Fusions intégrées   </span><span class="w">185</span>   <span class="d">relues sous votre responsabilité</span>
-  <span class="d">Volume du dépôt     </span>142 228 lignes TypeScript
-  <span class="d">Stack détectée      </span>Docker · Drizzle ORM · Hono · Next.js</pre>
+<input type="checkbox" id="rejouer" class="bascule">
+<pre class="terminal"><span class="l" style="--i:0"><span class="d">$</span> <span class="w">npx @elodias/recade scan ~/Projets/${demo.depot}</span></span>
+<span class="l" style="--i:1"> </span>
+<span class="l" style="--i:2">  <span class="g">◆</span>  <span class="w">RÉCADE</span>   <span class="d">attestation de contribution</span></span>
+<span class="l" style="--i:3">     <span class="w">${demo.depot}</span> <span class="d">· scan local, aucun code transmis</span></span>
+<span class="l" style="--i:4"> </span>
+<span class="l" style="--i:5">  <span class="d">Période             </span>${demo.periode}</span>
+<span class="l" style="--i:6">  <span class="d">Commits signés      </span><span class="w">${nb(demo.commitsSignes)}</span> / ${nb(demo.commitsTotal)}   <span class="d">${demo.rang}er contributeur sur ${demo.equipe}</span></span>
+<span class="l" style="--i:7">  <span class="d">Fusions intégrées   </span><span class="w">${nb(demo.fusions)}</span>   <span class="d">relues sous votre responsabilité</span></span>
+<span class="l" style="--i:8">  <span class="d">Volume du dépôt     </span>${nb(demo.lignes)} lignes TypeScript</span>
+<span class="l" style="--i:9">  <span class="d">Stack détectée      </span>${demo.stack}</span></pre>
+    <p class="releve">
+      Sortie réelle, relevée le ${demo.releve}. Les compteurs d'un dépôt vivant
+      bougent : un chiffre publié sans sa date ne veut rien dire.
+      <label for="rejouer" class="rejouer">Rejouer</label>
+    </p>
     <p class="lead" style="margin-top:22px">
-      <b>185 fusions relues.</b> Tu n'as pas <i>dit</i> que tu encadres des juniors :
-      tu as validé le travail des autres 185 fois. C'est la définition factuelle
+      <b>${nb(demo.fusions)} fusions relues.</b> Tu n'as pas <i>dit</i> que tu encadres des juniors :
+      tu as validé le travail des autres ${nb(demo.fusions)} fois. C'est la définition factuelle
       de l'encadrement.
     </p>
   </section>
@@ -221,17 +259,17 @@ const corps = `<div class="wrap">
       L'attestation embarque le commit d'ancrage, celui du premier commit et celui
       de chaque fusion revendiquée. Quiconque dispose du dépôt recalcule.
     </p>
-<pre><span class="d">$</span> <span class="w">npx @elodias/recade verify attestation.html ~/Projets/inventaire</span>
+<pre><span class="d">$</span> <span class="w">npx @elodias/recade verify attestation.html ~/Projets/${demo.depot}</span>
 
-  <span class="v">✓</span> Premier commit        457c7ce8ae
-  <span class="v">✓</span> Commits signés        1025
-  <span class="v">✓</span> Rang                  1
-  <span class="v">✓</span> Fusions revendiquées  185 réelles
-  <span class="v">✓</span> Lignes TypeScript     142228
+  <span class="v">✓</span> Premier commit        ${demo.premierCommit}
+  <span class="v">✓</span> Commits signés        ${demo.commitsSignes}
+  <span class="v">✓</span> Rang                  ${demo.rang}
+  <span class="v">✓</span> Fusions revendiquées  ${demo.fusions} réelles
+  <span class="v">✓</span> Lignes TypeScript     ${demo.lignes}
 
   <span class="verdict ok">✓ Attestation confirmée</span> <span class="d">: tous les compteurs se recalculent à l'identique.</span></pre>
     <p class="lead" style="margin-top:22px">Gonflez un chiffre, et&nbsp;:</p>
-<pre>  <span class="r">✗</span> Commits signés        <span class="r">1025</span>   <span class="d">attesté : 1800</span>
+<pre>  <span class="r">✗</span> Commits signés        <span class="r">${demo.commitsSignes}</span>   <span class="d">attesté : ${demo.gonfle}</span>
 
   <span class="verdict ko">✗ Attestation réfutée</span> <span class="d">: au moins un compteur ne tient pas.</span></pre>
   </section>

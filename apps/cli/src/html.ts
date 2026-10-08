@@ -65,10 +65,27 @@ function seal(hex: string): string {
     </svg>`;
 }
 
-function row(label: string, value: string, note?: string): string {
-  return `<div class="r"><span>${esc(label)}</span><b>${value}${
-    note ? `<i>${esc(note)}</i>` : ""
-  }</b></div>`;
+/**
+ * Une ligne de l'attestation.
+ *
+ * `preuve` n'est pas facultative, et c'est volontaire : la règle 2 d'AGENTS.md
+ * dit qu'un compteur sans le moyen de le recalculer n'a pas sa place dans le
+ * bundle. En la rendant obligatoire dans le type, le compilateur refuse un
+ * chiffre orphelin avant même qu'un test ait à le dire.
+ */
+type Ligne = { label: string; value: string; preuve: string; note?: string };
+
+function row(l: Ligne, i: number): string {
+  const id = `pr-${i}`;
+  return `<div class="r">
+          <input type="checkbox" id="${id}" class="bascule">
+          <div class="tete">
+            <span>${esc(l.label)}</span>
+            <label for="${id}" class="voir" title="Comment ce chiffre se recalcule">preuve</label>
+            <b>${l.value}${l.note ? `<i>${esc(l.note)}</i>` : ""}</b>
+          </div>
+          <div class="preuve">${esc(l.preuve)}</div>
+        </div>`;
 }
 
 export function renderHtmlAttestation(bundle: Bundle): string {
@@ -81,18 +98,36 @@ export function renderHtmlAttestation(bundle: Bundle): string {
       ? `${me.rank}${me.rank === 1 ? "er" : "e"} contributeur sur ${repo.contributors}`
       : "seul contributeur";
 
-  const rows = [
-    row("Commits signés", `${nf.format(me.commits)} <small>/ ${nf.format(repo.totalCommits)}</small>`, rankNote),
-    me.mergesIntegrated > 0
-      ? row("Fusions intégrées", nf.format(me.mergesIntegrated), "relues sous sa responsabilité")
-      : "",
-    ...volume
-      .slice(0, 4)
-      .map((v) => row(`Lignes ${v.language}`, nf.format(v.lines))),
-    row("Fichiers suivis", nf.format(repo.trackedFiles)),
-  ]
-    .filter(Boolean)
-    .join("\n        ");
+  const ancrage = repo.headSha.slice(0, 10);
+  const lignes: Ligne[] = [
+    {
+      label: "Commits signés",
+      value: `${nf.format(me.commits)} <small>/ ${nf.format(repo.totalCommits)}</small>`,
+      note: rankNote,
+      preuve: `Recompté par git log dans l'arbre du commit ${ancrage}, limité aux signatures listées plus bas.`,
+    },
+    ...(me.mergesIntegrated > 0
+      ? [
+          {
+            label: "Fusions intégrées",
+            value: nf.format(me.mergesIntegrated),
+            note: "relues sous sa responsabilité",
+            preuve: `${nf.format(me.mergeShas.length)} empreintes de fusion voyagent dans ce document, confrontées une par une au dépôt.`,
+          },
+        ]
+      : []),
+    ...volume.slice(0, 4).map((v) => ({
+      label: `Lignes ${v.language}`,
+      value: nf.format(v.lines),
+      preuve: `Comptées par git grep -cI dans l'arbre du commit ${ancrage}, jamais sur le dossier de travail.`,
+    })),
+    {
+      label: "Fichiers suivis",
+      value: nf.format(repo.trackedFiles),
+      preuve: `Relevés par git ls-tree dans l'arbre du commit ${ancrage}, hors chemins vendorisés.`,
+    },
+  ];
+  const rows = lignes.map(row).join("\n        ");
 
   const signatures = me.signatures
     .map(
@@ -117,7 +152,7 @@ export function renderHtmlAttestation(bundle: Bundle): string {
   @page { size: A4; margin: 16mm; }
   :root {
     --forge:#14120F; --forge-2:#2A241C; --laiton:#B8863B; --laiton-clair:#E0B65C;
-    --vert:#5E7A66; --ivoire:#F2EBDD; --ivoire-2:#DCD2BE; --cendre:#8A8073;
+    --laiton-fonce:#7A5115; --vert:#5E7A66; --ivoire:#F2EBDD; --ivoire-2:#DCD2BE; --cendre:#8A8073;
   }
   *{box-sizing:border-box}
   html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -140,10 +175,26 @@ export function renderHtmlAttestation(bundle: Bundle): string {
   h2{margin:0 0 12px;font-size:10.5px;font-weight:700;letter-spacing:1.6px;
     text-transform:uppercase;color:var(--cendre);
     padding-bottom:7px;border-bottom:1px solid var(--ivoire-2)}
-  .r{display:flex;justify-content:space-between;align-items:baseline;gap:18px;
-    padding:8px 0;border-bottom:1px solid #E7DFCD}
+  .r{padding:8px 0;border-bottom:1px solid #E7DFCD}
   .r:last-child{border-bottom:0}
+  .r .tete{display:flex;align-items:baseline;gap:10px}
+  .r .tete b{margin-left:auto}
   .r span{color:#5D554A;font-size:13.5px}
+
+  /* Le dépliage d'une preuve est le SEUL mouvement admis dans l'attestation.
+     Il passe par une case à cocher : ce document est autonome et ne contient
+     aucun script. À l'impression, tout est déplié d'office. */
+  .bascule{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;
+    clip-path:inset(50%);white-space:nowrap}
+  .voir{font-size:10px;letter-spacing:.6px;color:var(--cendre);cursor:pointer;
+    user-select:none;border-bottom:1px dotted var(--ivoire-2);line-height:1.2}
+  .voir:hover{color:var(--laiton-fonce);border-bottom-color:var(--laiton)}
+  .bascule:checked~.tete .voir{color:var(--laiton-fonce);border-bottom-style:solid}
+  .bascule:focus-visible+.voir{outline:2px solid var(--laiton);outline-offset:2px}
+  .bascule:checked~.voir .o,.bascule:not(:checked)~.voir .f{display:none}
+  .preuve{max-height:0;overflow:hidden;opacity:0;font-size:11.5px;line-height:1.5;
+    color:#5D554A;transition:max-height .28s ease,opacity .2s ease,margin-top .28s ease}
+  .bascule:checked~.preuve{max-height:8rem;opacity:1;margin-top:5px}
   .r b{font-weight:600;font-size:15px;text-align:right;white-space:nowrap}
   .r b small{font-weight:400;color:var(--cendre);font-size:12.5px}
   .r b i{display:block;font-style:normal;font-size:11px;font-weight:400;
@@ -164,7 +215,13 @@ export function renderHtmlAttestation(bundle: Bundle): string {
     color:var(--laiton-clair);word-break:break-all}
   .pied strong{color:#fff;font-weight:600}
   .pied .portee{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.14)}
-  @media print{ body{background:#fff;padding:0} .sheet{box-shadow:none;max-width:none} }
+  @media print{
+    body{background:#fff;padding:0} .sheet{box-shadow:none;max-width:none}
+    /* un document imprimé ne se déplie pas : tout est montré */
+    .voir,.bascule{display:none}
+    .preuve{max-height:none;opacity:1;margin-top:5px;overflow:visible}
+    .r{break-inside:avoid}
+  }
   @media (max-width:560px){ .manche{flex-direction:column;align-items:flex-start} }
 </style>
 </head>
@@ -205,6 +262,7 @@ export function renderHtmlAttestation(bundle: Bundle): string {
 
     <footer class="pied">
       <div><strong>Ancrage</strong> — commit <code>${esc(repo.headSha)}</code></div>
+      <div><strong>Premier commit</strong> — <code>${esc(repo.firstCommitSha)}</code></div>
       <div><strong>Empreinte</strong> — <code>${print}</code></div>
       ${repo.remote ? `<div><strong>Dépôt</strong> — <code>${esc(repo.remote)}</code></div>` : ""}
       <div class="portee">

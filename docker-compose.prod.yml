@@ -4,6 +4,10 @@ services:
   recade-site:
     build: !reset null
     image: ghcr.io/${GHCR_OWNER:-elodias2001}/recade-site:${IMAGE_TAG:-main}
+    # Plafonds posés après les six coupures mémoire du 8 octobre 2026 : sans
+    # limite, le noyau tuait le plus gros conteneur du VPS au lieu du fautif.
+    mem_limit: 128m
+    memswap_limit: 192m
     networks: [gcw-public]
     labels:
       - "traefik.enable=true"

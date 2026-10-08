@@ -99,14 +99,16 @@ describe("aucun chiffre sans sa preuve", () => {
   });
 
   it("aucune preuve n'est vide", () => {
-    for (const [, texte] of html.matchAll(/<div class="preuve">([\s\S]*?)<\/div>/g)) {
+    for (const m of html.matchAll(/<div class="preuve">([\s\S]*?)<\/div>/g)) {
+      const texte = m[1] ?? "";
       expect(texte.trim().length).toBeGreaterThan(20);
     }
   });
 
   it("chaque preuve cite le commit d'ancrage ou les empreintes embarquées", () => {
     const court = base.repository.headSha.slice(0, 10);
-    for (const [, texte] of html.matchAll(/<div class="preuve">([\s\S]*?)<\/div>/g)) {
+    for (const m of html.matchAll(/<div class="preuve">([\s\S]*?)<\/div>/g)) {
+      const texte = m[1] ?? "";
       expect(texte.includes(court) || /empreintes/.test(texte)).toBe(true);
     }
   });

@@ -22,3 +22,7 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm build:docs
+      # build:site n'y était pas : une erreur de construction du site
+      # n'apparaissait qu'au build Docker, après le portail. Il vérifie
+      # en plus que le poids déclaré dans chaque page est exact.
+      - run: pnpm build:site

@@ -10,7 +10,8 @@
  * Les URL sont sans extension (`/a-propos`) : nginx les résout via
  * `try_files $uri $uri.html`.
  */
-import { cp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { gzipSync } from "node:zlib";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { site } from "../site/config.mjs";
@@ -26,14 +27,54 @@ const ROUTES = [
   { module: "confidentialite.mjs", fichier: "confidentialite.html", url: "/confidentialite", priorite: "0.3" },
 ];
 
+const MARQUE = "__POIDS__";
+const enKo = (octets) => `${(octets / 1024).toFixed(1).replace(".", ",")} Ko`;
+
+/**
+ * Inscrit dans la page son propre poids compressé.
+ *
+ * Écrire le poids change le poids : on itère jusqu'au point fixe. Arrondi au
+ * dixième de kilo-octet, les quelques octets que coûte le chiffre lui-même ne
+ * font presque jamais basculer l'arrondi, et la suite converge en deux ou
+ * trois passes. Si elle oscille, on échoue plutôt que de publier un nombre
+ * faux : ce site affirme que tout chiffre annoncé doit être recalculable,
+ * celui-ci le premier.
+ */
+function inscrirePoids(html, nom) {
+  if (!html.includes(MARQUE)) {
+    throw new Error(`${nom} ne contient pas ${MARQUE} : le pied de page a changé.`);
+  }
+  let annonce = enKo(gzipSync(Buffer.from(html.replace(MARQUE, "0,0 Ko"))).length);
+  for (let passe = 0; passe < 8; passe++) {
+    const page = html.replace(MARQUE, annonce);
+    const reel = enKo(gzipSync(Buffer.from(page)).length);
+    if (reel === annonce) return page;
+    annonce = reel;
+  }
+  throw new Error(
+    `Le poids déclaré de ${nom} n'a pas convergé en 8 passes. ` +
+      `Augmenter la granularité, ou admettre que le chiffre est instable.`,
+  );
+}
+
 await rm(SORTIE, { recursive: true, force: true });
 await mkdir(SORTIE, { recursive: true });
 
 // --- pages ---
 for (const route of ROUTES) {
-  const { default: html } = await import(join(RACINE, "site", "pages", route.module));
+  const { default: brut } = await import(join(RACINE, "site", "pages", route.module));
+  const html = inscrirePoids(brut, route.fichier);
   await writeFile(join(SORTIE, route.fichier), html, "utf8");
-  console.log(`  ✓ ${route.fichier.padEnd(24)} ${route.url}`);
+
+  // On relit depuis le disque : le chiffre annoncé doit décrire le fichier
+  // réellement servi, pas la chaîne qu'on croyait écrire.
+  const servi = await readFile(join(SORTIE, route.fichier));
+  const mesure = enKo(gzipSync(servi).length);
+  const annonce = /Cette page pèse <b>([^<]+)<\/b>/.exec(servi.toString())?.[1];
+  if (annonce !== mesure) {
+    throw new Error(`${route.fichier} annonce ${annonce} mais pèse ${mesure}.`);
+  }
+  console.log(`  ✓ ${route.fichier.padEnd(24)} ${route.url.padEnd(20)} ${mesure}`);
 }
 
 // --- fichiers statiques : tout site/ sauf le code de construction ---

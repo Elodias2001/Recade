@@ -139,6 +139,12 @@ const STYLE = `
   footer .liens a{padding:9px 0;min-height:44px;display:inline-flex;align-items:center;
     text-decoration:none}
   footer .credit{margin:0}
+  /* Le site applique à lui-même la règle qu'il vend : un chiffre annoncé doit
+     être recalculable. Celui-ci est inscrit à la construction par
+     scripts/build-site.mjs, qui relit le fichier écrit et échoue si le compte
+     n'y est pas. */
+  footer .poids{margin:10px 0 0;font-size:12.5px;color:rgba(255,255,255,.52)}
+  footer .poids b{color:var(--laiton-clair);font-weight:600}
   footer .credit a{text-decoration:none;border-bottom:1px solid transparent}
   footer .credit a:hover,footer .credit a:focus-visible{border-bottom-color:var(--laiton-clair);text-decoration:none}
 
@@ -237,6 +243,7 @@ ${page.corps}
       <a href="${esc(site.depot)}" rel="noopener noreferrer">GitHub</a>
     </div>
     <p class="credit">© ${annee} ${esc(site.nom)} · Conçu &amp; développé par <a href="/a-propos">${esc(auteur.nom)}</a></p>
+    <p class="poids">Cette page pèse <b>__POIDS__</b> compressés et ne charge aucune ressource externe.</p>
   </div>
 </footer>
 

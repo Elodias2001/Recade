@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { auteur, contacts, demo, nb, pagesLegales, site } from "./config.mjs";
-import { VIGNETTES } from "./og.mjs";
+import { svgVignette, VIGNETTES } from "./og.mjs";
 
 /**
  * Le site est bâti par `scripts/build-site.mjs` à partir de modules. On teste
@@ -292,5 +292,34 @@ describe("les chiffres de la démonstration", () => {
   it("le contre-exemple du bloc verify reste faux, sinon il ne démontre rien", () => {
     expect(demo.gonfle).not.toBe(demo.commitsSignes);
     expect(texte).toContain(`attesté : ${demo.gonfle}`);
+  });
+});
+
+/**
+ * Le badge dessiné dans la vignette de partage porte les mêmes compteurs que
+ * la page d'accueil. Les écrire deux fois les aurait fait diverger, ce qui
+ * est exactement le défaut corrigé le 8 octobre 2026 — sauf qu'ici personne
+ * ne l'aurait vu, une vignette ne se relit jamais.
+ */
+describe("la vignette d'accueil", () => {
+  const svg = svgVignette({
+    ...VIGNETTES["/"],
+    surtitre: VIGNETTES["/"].surtitre,
+  });
+
+  it("dessine le badge au cordon", () => {
+    expect(svg).toContain("Attestation confirmée");
+    expect(svg).toContain(demo.depot);
+  });
+
+  it.each([
+    ["commits signés", nb(demo.commitsSignes)],
+    ["fusions relues", nb(demo.fusions)],
+  ])("affiche le même nombre de %s que la page", (_, attendu) => {
+    expect(svg).toContain(`>${attendu}<`);
+  });
+
+  it("ne contient aucun dégradé, la marque les interdit", () => {
+    expect(svg).not.toMatch(/linearGradient|radialGradient/);
   });
 });

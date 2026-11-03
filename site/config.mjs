@@ -31,7 +31,7 @@ export const auteur = {
   // il a donc sa place dans les mentions légales. Le NPI, lui, est un numéro
   // personnel : il n'est pas publié.
   ifu: "0202345403945",
-  portfolio: "https://elodias-adimou.netlify.app",
+  portfolio: "https://elodiasadimou.sabar.app",
 };
 
 /**

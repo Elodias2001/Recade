@@ -48,7 +48,7 @@ describe("page À propos", () => {
     }
     expect(pages.apropos).toContain("https://wa.me/22967770115");
     expect(pages.apropos).toContain("mailto:nounagnonadimou@gmail.com");
-    expect(pages.apropos).toContain("https://elodias-adimou.netlify.app");
+    expect(pages.apropos).toContain(auteur.portfolio);
   });
 
   it("ouvre les liens externes sans exposer la fenêtre d'origine", () => {
